@@ -39,7 +39,7 @@ def run_training():
         saver = tf.train.Saver()
         #saver.restore(sess,os.path.join(FLAGS.output_dir,"checkout-1000000"))
         i = 0
-        while(i < (4000)):
+        while(i < (32000000)):
             i = i + 1
             batch = data.next_batch(50,data.myDataImages,data.myDataLabels)
             #batch = data.next_batch(50,mnist.train.images,mnist.train.labels)
