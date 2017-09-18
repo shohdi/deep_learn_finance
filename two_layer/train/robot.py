@@ -17,9 +17,10 @@ flags.DEFINE_string('output_dir','output','Output Directory')
 #mnist=input_data.read_data_sets("MNIST_data/",one_hot=True)
 
 def run_training():
-    
+    print("start , will open session now")
     #get inputs
     with tf.Session() as sess:
+        print("start the session")
         model = TensorflowHelper()
         year1 = model.read_tensor_flow_file('trainYear1.csv',sess,FLAGS)
         year2 = model.read_tensor_flow_file('trainYear2.csv',sess,FLAGS)
