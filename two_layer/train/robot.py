@@ -19,29 +19,34 @@ flags.DEFINE_string('output_dir','output','Output Directory')
 def run_training():
     print("start , will open session now")
     #get inputs
+    #config = tf.ConfigProto(inter_op_parallelism_threads=1)
     with tf.Session() as sess:
-        print("start the session")
         model = TensorflowHelper()
-        year1 = model.read_tensor_flow_file('trainYear1.csv',sess,FLAGS)
-        year2 = model.read_tensor_flow_file('trainYear2.csv',sess,FLAGS)
-        year3 = model.read_tensor_flow_file('trainYear3.csv',sess,FLAGS)
-        test_data = model.read_tensor_flow_file('testYear.csv',sess,FLAGS)
-        data = ReadDateFile()
-        test = ReadDateFile()
-        years = list()
-        years.extend(year1)
-        years.extend(year2)
-        years.extend(year3)
-        data.readArr(np.array(years))
-        test.readArr(np.array(test_data))
         model.threeBoltzYearLayer(40,3)
         sess.run(tf.global_variables_initializer())
+        
+        print("start the session")
         saver = tf.train.Saver()
+        images,labels = model.read_tensor_flow_file('trainData.csv',FLAGS)
+        trainBatchTF = model.getBatch(50,images,labels)
+        testImagesTf,testLabelsTf = model.read_tensor_flow_file('testData.csv',FLAGS)
+        testBatchTf = model.getBatch(500,testImagesTf,testLabelsTf)
+        
+       
+        #testImages,testLabels = sess.run([images,labels])
+        
+        
         #saver.restore(sess,os.path.join(FLAGS.output_dir,"checkout-1000000"))
+        coord = tf.train.Coordinator()
+        threads = tf.train.start_queue_runners(sess=sess, coord=coord)
+        
+        
+
         i = 0
         while(i < (32000000)):
             i = i + 1
-            batch = data.next_batch(50,data.myDataImages,data.myDataLabels)
+            batch = sess.run( trainBatchTF )
+
             #batch = data.next_batch(50,mnist.train.images,mnist.train.labels)
             
             if(i%1000 == 0 or i == 1):
@@ -55,9 +60,11 @@ def run_training():
 
 
     #test result
-        print('train accuracy for  test : %g' % model.accuracy.eval(feed_dict={model.x:test.myDataImages,model.y_:test.myDataLabels,model.keep:1.0}))
+        for i in range(20):
+            testBatch = sess.run(testBatchTf)
+            print('train accuracy for  test : %g' % model.accuracy.eval(feed_dict={model.x:testBatch[0],model.y_:testBatch[1],model.keep:1.0}))
 
-
+        
 
 
 def main(_):

@@ -21,7 +21,31 @@ class TensorflowHelper :
 
 
 
-    def read_tensor_flow_file(self,file_name,sess,FLAGS):
+    def read_tensor_flow_file(self,file_name,FLAGS):
+        csv_file1 = os.path.join(FLAGS.input_dir,file_name)
+        csv_path = tf.train.string_input_producer([csv_file1])
+        textReader = tf.TextLineReader()
+        key,value = textReader.read(csv_path)
+        imageRow = list()
+        for i in range(43):
+            imageRow.append([0.0])
+        
+        batch_size  = 1
+        min_after_dequeue = 10000
+        capacity = min_after_dequeue + 3 * batch_size
+        tfRow = tf.decode_csv(value, record_defaults=imageRow)
+        images = tfRow[0:40]
+        labels = tfRow[40:44]
+        return images,labels
+        
+        
+    def getBatch(self,batch_size,fileImages,fileLabels):
+        min_after_dequeue = batch_size * 20
+        capacity = min_after_dequeue + 3 * batch_size
+        return tf.train.shuffle_batch([fileImages,fileLabels],batch_size=batch_size,capacity=capacity,min_after_dequeue=min_after_dequeue)
+        
+
+    def read_tensor_ready_file(self,file_name,sess,FLAGS):
         csv_file1 = os.path.join(FLAGS.input_dir,file_name)
         
 
