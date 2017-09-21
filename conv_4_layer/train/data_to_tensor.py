@@ -9,11 +9,13 @@ from train.read_date_data import ReadDateFile
 def fix_data():
     print('start fixing')
     data = ReadDateFile()
-    data.readFile('input\\testYear.csv')
+    readFileName = os.path.join('input','myOldData.csv')
+    writeFileName = os.path.join('input','myOldDataTensor.csv')
+    data.readFile(readFileName)
     #print('images ',data.myDataImages)
     #print('labels ',data.myDataLabels)
 
-    with open('input\\testData.csv', 'w') as f:
+    with open(writeFileName, 'w') as f:
         imagesLength = len(data.myDataImages)
         for i in range(imagesLength):
             oneImage = data.myDataImages[i]
