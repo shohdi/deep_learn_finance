@@ -9,8 +9,14 @@ from train.read_date_data import ReadDateFile
 def fix_data():
     print('start fixing')
     data = ReadDateFile()
-    readFileName = os.path.join('input','myOldData.csv')
-    writeFileName = os.path.join('input','myOldDataTensor.csv')
+    listRead = list()
+    listRead.append(os.path.join('input','trainYear1.csv'))
+    listRead.append(os.path.join('input','trainYear2.csv'))
+    listRead.append(os.path.join('input','trainYear3.csv'))
+    readFileName = ';'.join(listRead)
+    print('read files ',readFileName)
+
+    writeFileName = os.path.join('input','trainData.csv')
     data.readFile(readFileName)
     #print('images ',data.myDataImages)
     #print('labels ',data.myDataLabels)
