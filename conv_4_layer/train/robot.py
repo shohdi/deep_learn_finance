@@ -22,7 +22,7 @@ def run_training():
     #config = tf.ConfigProto(inter_op_parallelism_threads=1)
     with tf.Session() as sess:
         model = TensorflowHelper()
-        model.threeBoltzYearLayer(40,3)
+        model.conv4LayerModel(40,3)
         sess.run(tf.global_variables_initializer())
         
         print("start the session")
@@ -49,10 +49,10 @@ def run_training():
 
             #batch = data.next_batch(50,mnist.train.images,mnist.train.labels)
             
-            if(i%1000 == 0 or i == 1):
+            if(i%100 == 0 or i == 1):
                 train_accuracy = model.accuracy.eval(feed_dict= {model.x:batch[0],model.y_:batch[1],model.keep:1.0})    
                 print('train accuricy for step %d is %g' % (i,train_accuracy))
-            if(i%1000000 == 0 or i == 1000):
+            if(i%20000 == 0):
                 saver.save(sess, os.path.join(FLAGS.output_dir,"checkout"),global_step=i)
             model.trainStep.run(feed_dict= {model.x:batch[0],model.y_:batch[1],model.keep:0.5})
        

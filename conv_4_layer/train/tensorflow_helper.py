@@ -501,3 +501,74 @@ class TensorflowHelper :
 
 
 
+ #convolution model
+    def conv4LayerModel(self,inputSize,outputSize):
+        #create input  array
+        
+        self.x = tf.placeholder(tf.float32,[None,inputSize])
+        #create output expected array
+        self.y_ = tf.placeholder(tf.float32,[None,outputSize])
+
+        We = self.weight_variable([inputSize,16384])
+        be = self.bias_variable([16384])
+
+        xEncoded = tf.matmul(self.x,We)+be
+
+
+        W2 = self.weight_variable([5,5,1,128])
+        b2 = self.bias_variable([128])
+
+        xEncReshape = tf.reshape(xEncoded,[-1,128,128,1])
+        h2 = tf.nn.relu(self.conv2d(xEncReshape,W2)+b2)
+        h2Pool = self.max_pool_2x2(h2)
+
+        W3 = self.weight_variable([5,5,128,256])
+        b3 = self.bias_variable([256])
+
+        h3 = tf.nn.relu(self.conv2d(h2Pool,W3)+b3)
+        h3Pool = self.max_pool_2x2(h3)
+
+        W4 = self.weight_variable([5,5,256,512])
+        b4 = self.bias_variable([512])
+        h4 = tf.nn.relu(self.conv2d(h3Pool,W4)+b4)
+        h4Pool = self.max_pool_2x2(h4)
+
+        W5 = self.weight_variable([5,5,512,1024])
+        b5 = self.bias_variable([1024])
+        h5 = tf.nn.relu(self.conv2d(h4Pool,W5)+b5)
+        h5Pool = self.max_pool_2x2(h5)
+        
+
+        lastSize1 = 8
+        lastSize2 = 8
+        lastInputSize = lastSize1 * lastSize2 *1024 
+        Wf = self.weight_variable([ lastInputSize ,2048])
+        bf = self.bias_variable([2048])
+
+
+        h5PoolReshape = tf.reshape(h5Pool,[-1,lastInputSize])
+
+        hf = tf.nn.relu(tf.matmul(h5PoolReshape,Wf)+bf)
+
+        self.keep = tf.placeholder(tf.float32)
+
+        hfDrop = tf.nn.dropout(hf,self.keep)
+
+        outputShape = [2048,outputSize]
+        Wl = self.weight_variable(outputShape)
+        bl = self.bias_variable([outputSize])
+
+        self.yOut = tf.matmul(hfDrop,Wl) + bl
+
+        cross_entropy = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels=self.y_,logits=self.yOut))
+
+        self.trainStep = tf.train.AdamOptimizer(1e-4).minimize(cross_entropy)
+
+
+        #define prediction way
+        correct_prediction = tf.equal(tf.argmax(self.yOut,1),tf.argmax(self.y_,1))
+
+        #accuracy
+
+        self.accuracy = tf.reduce_mean(tf.cast(correct_prediction,tf.float32))
+
