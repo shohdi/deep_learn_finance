@@ -1,6 +1,6 @@
 gcloud ml-engine jobs submit training $JOB_NAME --module-name train.robot --region $REGION --package-path train/ --staging-bucket $STAGING_BUCKET --scale-tier BASIC_GPU -- --input_dir $INPUT_DIR --output_dir $OUTPUT_DIR
 PROJECT_ID=$(gcloud config list project --format "value(core.project)")
-JOB_NAME=${PROJECT_ID}-task1
+JOB_NAME=task5
 REGION=us-central1
 STAGING_BUCKET=gs://${PROJECT_ID}-ml
 INPUT_DIR=${STAGING_BUCKET}/input
