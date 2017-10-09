@@ -22,7 +22,7 @@ def run_training():
     #config = tf.ConfigProto(inter_op_parallelism_threads=1)
     with tf.Session() as sess:
         model = TensorflowHelper()
-        model.conv4LayerModel(40,3)
+        model.conv4LayerModel(4,10,3)
         sess.run(tf.global_variables_initializer())
         
         print("start the session")

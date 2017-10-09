@@ -501,54 +501,51 @@ class TensorflowHelper :
 
 
 
- #convolution model
-    def conv4LayerModel(self,inputSize,outputSize):
+    #convolution model
+    def conv4LayerModel(self,inputSize1,inputSize2,outputSize):
         #create input  array
-        
+        inputSize = inputSize1 * inputSize2
         self.x = tf.placeholder(tf.float32,[None,inputSize])
         #create output expected array
         self.y_ = tf.placeholder(tf.float32,[None,outputSize])
 
-        We = self.weight_variable([inputSize,16384])
-        be = self.bias_variable([16384])
+        W1 = self.weight_variable([4,4,1,32])
+        b1 = self.bias_variable([32])
 
-        xEncoded = tf.matmul(self.x,We)+be
+        xReshaped = tf.reshape(self.x,[-1,inputSize1,inputSize2,1])
+        h1 = tf.nn.relu(self.conv2d(xReshaped,W1)+b1)
 
 
-        W2 = self.weight_variable([5,5,1,128])
-        b2 = self.bias_variable([128])
 
-        xEncReshape = tf.reshape(xEncoded,[-1,128,128,1])
-        h2 = tf.nn.relu(self.conv2d(xEncReshape,W2)+b2)
-        h2Pool = self.max_pool_2x2(h2)
-
-        W3 = self.weight_variable([5,5,128,256])
-        b3 = self.bias_variable([256])
-
-        h3 = tf.nn.relu(self.conv2d(h2Pool,W3)+b3)
-        h3Pool = self.max_pool_2x2(h3)
-
-        W4 = self.weight_variable([5,5,256,512])
-        b4 = self.bias_variable([512])
-        h4 = tf.nn.relu(self.conv2d(h3Pool,W4)+b4)
-        h4Pool = self.max_pool_2x2(h4)
-
-        W5 = self.weight_variable([5,5,512,1024])
-        b5 = self.bias_variable([1024])
-        h5 = tf.nn.relu(self.conv2d(h4Pool,W5)+b5)
-        h5Pool = self.max_pool_2x2(h5)
         
 
-        lastSize1 = 8
-        lastSize2 = 8
-        lastInputSize = lastSize1 * lastSize2 *1024 
+
+        W2 = self.weight_variable([4,4,32,64])
+        b2 = self.bias_variable([64])
+
+        
+        h2 = tf.nn.relu(self.conv2d(h1,W2)+b2)
+
+        W3 = self.weight_variable([4,4,64,128])
+        b3 = self.bias_variable([128])
+
+        h3 = tf.nn.relu(self.conv2d(h2,W3)+b3)
+        
+
+        W4 = self.weight_variable([4,4,128,256])
+        b4 = self.bias_variable([256])
+        h4 = tf.nn.relu(self.conv2d(h3,W4)+b4)
+        h4Pool = self.max_pool_2x2(h4)
+        
+        lastSize1 = 2
+        lastSize2 = 5
+        lastInputSize = lastSize1 * lastSize2 *256
+        h4PoolReshape = tf.reshape(h4Pool,[-1,lastInputSize])
+        
         Wf = self.weight_variable([ lastInputSize ,2048])
         bf = self.bias_variable([2048])
 
-
-        h5PoolReshape = tf.reshape(h5Pool,[-1,lastInputSize])
-
-        hf = tf.nn.relu(tf.matmul(h5PoolReshape,Wf)+bf)
+        hf = tf.nn.relu(tf.matmul(h4PoolReshape,Wf)+bf)
 
         self.keep = tf.placeholder(tf.float32)
 
@@ -558,11 +555,12 @@ class TensorflowHelper :
         Wl = self.weight_variable(outputShape)
         bl = self.bias_variable([outputSize])
 
-        self.yOut = tf.matmul(hfDrop,Wl) + bl
+        self.yOut = tf.nn.relu(tf.matmul(hfDrop,Wl) + bl)
 
         cross_entropy = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels=self.y_,logits=self.yOut))
 
-        self.trainStep = tf.train.AdamOptimizer(1e-4).minimize(cross_entropy)
+        #self.trainStep = tf.train.AdamOptimizer(1e-4).minimize(cross_entropy)
+        self.trainStep = tf.train.GradientDescentOptimizer(0.05).minimize(cross_entropy)
 
 
         #define prediction way
