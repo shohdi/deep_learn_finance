@@ -65,7 +65,8 @@ def run_training():
             batch = data.next_batch(batchSizeInt,data.myDataImages,data.myDataLabels)
             
             if(i%1000 == 0 or i == 1):
-                train_accuracy = model.accuracy.eval(feed_dict= {model.x:batch[0],model.y_:batch[1],model.keep:1.0})    
+                batchForValidate = data.next_batch(213,data.myDataImages,data.myDataLabels)
+                train_accuracy = model.accuracy.eval(feed_dict= {model.x:batchForValidate[0],model.y_:batchForValidate[1],model.keep:1.0})    
                 print('train accuricy for step %d is %g' % (i,train_accuracy))
             if(i%1000000 == 0):
                 saver.save(sess, os.path.join(FLAGS.output_dir,"checkout"),global_step=i)
