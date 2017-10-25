@@ -531,14 +531,15 @@ class TensorflowHelper :
 
         h3 = tf.nn.relu(self.conv2d(h2,W3)+b3)
         
+        h3Pool = self.max_pool_2x2(h3)
 
         W4 = self.weight_variable([4,4,128,256])
         b4 = self.bias_variable([256])
-        h4 = tf.nn.relu(self.conv2d(h3,W4)+b4)
+        h4 = tf.nn.relu(self.conv2d(h3Pool,W4)+b4)
         h4Pool = self.max_pool_2x2(h4)
         
-        lastSize1 = 2
-        lastSize2 = 5
+        lastSize1 = int(inputSize1/4)
+        lastSize2 = int(inputSize2/4)
         lastInputSize = lastSize1 * lastSize2 *256
         h4PoolReshape = tf.reshape(h4Pool,[-1,lastInputSize])
         

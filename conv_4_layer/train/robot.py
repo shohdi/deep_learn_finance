@@ -11,6 +11,8 @@ flags = tf.app.flags
 FLAGS = flags.FLAGS
 flags.DEFINE_string('input_dir','input','Input Directory')
 flags.DEFINE_string('output_dir','output','Output Directory')
+flags.DEFINE_string('batch_size','4','Batch Size')
+
 
 
 #from tensorflow.examples.tutorials.mnist import input_data
@@ -18,36 +20,48 @@ flags.DEFINE_string('output_dir','output','Output Directory')
 
 def run_training():
     print("start , will open session now")
+    print("batch size " ,FLAGS.batch_size)
+    batchSizeInt = int(FLAGS.batch_size)
+    print("Batch size int",batchSizeInt)
     #get inputs
     #config = tf.ConfigProto(inter_op_parallelism_threads=1)
     with tf.Session() as sess:
         model = TensorflowHelper()
-        model.conv4LayerModel(4,10,3)
+        fileNames = os.path.join(FLAGS.input_dir,'trainYear1.csv') +";" + os.path.join(FLAGS.input_dir,'trainYear2.csv') + ";" +os.path.join(FLAGS.input_dir,'trainYear3.csv')
+        fileNames = os.path.join(FLAGS.input_dir,'testYear.csv')
+        print("file names ",fileNames)
+        
+        
+        data = ReadDateFile()
+        test = ReadDateFile()
+       
+        data.readFile(fileNames)
+        test.readFile(os.path.join(FLAGS.input_dir,'testYear.csv'))
+        model.conv4LayerModel(32,4,3)
         sess.run(tf.global_variables_initializer())
         
         print("start the session")
         saver = tf.train.Saver()
-        images,labels = model.read_tensor_flow_file('trainData.csv',FLAGS)
-        trainBatchTF = model.getBatch(50,images,labels)
-        testImagesTf,testLabelsTf = model.read_tensor_flow_file('testData.csv',FLAGS)
-        testBatchTf = model.getBatch(500,testImagesTf,testLabelsTf)
+        #images,labels = model.read_tensor_flow_file('trainData.csv',FLAGS)
+        #trainBatchTF = model.getBatch(int(FLAGS.batch_size),images,labels)
+        #testImagesTf,testLabelsTf = model.read_tensor_flow_file('testData.csv',FLAGS)
+        #testBatchTf = model.getBatch(500,testImagesTf,testLabelsTf)
         
        
         #testImages,testLabels = sess.run([images,labels])
         
         
         #saver.restore(sess,os.path.join(FLAGS.output_dir,"checkout-1000000"))
-        coord = tf.train.Coordinator()
-        threads = tf.train.start_queue_runners(sess=sess, coord=coord)
-        
+        #coord = tf.train.Coordinator()
+        #threads = tf.train.start_queue_runners(sess=sess, coord=coord)
         
 
         i = 0
         while(i < (32000000)):
             i = i + 1
-            batch = sess.run( trainBatchTF )
+            #batch = sess.run( trainBatchTF )
 
-            #batch = data.next_batch(50,mnist.train.images,mnist.train.labels)
+            batch = data.next_batch(batchSizeInt,data.myDataImages,data.myDataLabels)
             
             if(i%1000 == 0 or i == 1):
                 train_accuracy = model.accuracy.eval(feed_dict= {model.x:batch[0],model.y_:batch[1],model.keep:1.0})    
@@ -61,7 +75,7 @@ def run_training():
 
     #test result
         for i in range(20):
-            testBatch = sess.run(testBatchTf)
+            testBatch = test.next_batch(500,test.myDataImages,test.myDataLabels)
             print('train accuracy for  test : %g' % model.accuracy.eval(feed_dict={model.x:testBatch[0],model.y_:testBatch[1],model.keep:1.0}))
 
         

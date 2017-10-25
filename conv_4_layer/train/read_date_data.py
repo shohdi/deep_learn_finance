@@ -172,7 +172,7 @@ class ReadDateFile:
         i=-6
         while (i< len(npArr)):
             i = i+6
-            inputLen = 60
+            inputLen = 192
             outputLen = 30
             if((i + inputLen + outputLen) <= len(npArr) ):
                 
