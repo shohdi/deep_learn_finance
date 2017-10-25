@@ -27,8 +27,9 @@ def run_training():
     #config = tf.ConfigProto(inter_op_parallelism_threads=1)
     with tf.Session() as sess:
         model = TensorflowHelper()
-        fileNames = os.path.join(FLAGS.input_dir,'trainYear1.csv') +";" + os.path.join(FLAGS.input_dir,'trainYear2.csv') + ";" +os.path.join(FLAGS.input_dir,'trainYear3.csv')
-        fileNames = os.path.join(FLAGS.input_dir,'testYear.csv')
+        #fileNames = os.path.join(FLAGS.input_dir,'trainYear1.csv') +";" + os.path.join(FLAGS.input_dir,'trainYear2.csv') + ";" +os.path.join(FLAGS.input_dir,'trainYear3.csv')
+        fileNames = os.path.join(FLAGS.input_dir,'trainYear3.csv')
+        #fileNames = os.path.join(FLAGS.input_dir,'testYear.csv')
         print("file names ",fileNames)
         
         
