@@ -10,4 +10,5 @@ print(arr)
 
 nparr =np.array(arr[0:79080])
 nparr=np.reshape(nparr,(-1,60))
-print(nparr)
+print(nparr)1
+
