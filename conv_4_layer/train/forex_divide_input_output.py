@@ -18,12 +18,21 @@ class ForexDivideInputOutput:
         
 
         for mainCycle in range(len(mainArr)):
+            inputIn = []
+            outputIn = []
             last = mainCycle + self.history + self.future;
             if(last < len(mainArr)):
                 inputIn = mainArr[mainCycle : (mainCycle + self.history)]
                 valid = self.checkArrInSameDay(inputIn)
+                if valid :
+                    outputIn = self.getOutput(mainArr[(mainCycle + self.history):],inputIn[0][0])
                 
 
+
+
+    def getOutput (self,arr,day):
+        ret = list()
+        return ret
 
 
     def checkArrInSameDay (self,arr):
