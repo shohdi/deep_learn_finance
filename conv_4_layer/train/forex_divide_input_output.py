@@ -3,10 +3,11 @@ import numpy as np
 
 
 class ForexDivideInputOutput:
-    def __init__(self,history,future):
+    def __init__(self,history,future,files):
         self.history = history
         self.future = future
-        self.readFile = ReadFile("/home/shohdi/projects/learning-tensorflow/projects/deep_learn_finance/conv_4_layer/input/myOldData.csv")
+        self.files = files
+        self.readFile = ReadFile(self.files)
     
 
 
@@ -15,23 +16,51 @@ class ForexDivideInputOutput:
         #print(mainArr)
         mainArr  = np.array(mainArr)
         mainArr = np.reshape(mainArr,(-1,6))
-        
+        inputTuble = []
+        outputTuble = []
+               
 
         for mainCycle in range(len(mainArr)):
             inputIn = []
             outputIn = []
             last = mainCycle + self.history + self.future;
             if(last < len(mainArr)):
-                inputIn = mainArr[mainCycle : (mainCycle + self.history)]
+                inputStartIndex = mainCycle
+                inputEndIndex = (mainCycle + self.history)
+                inputIn = mainArr[inputStartIndex : inputEndIndex ]
                 valid = self.checkArrInSameDay(inputIn)
                 if valid :
-                    outputIn = self.getOutput(mainArr[(mainCycle + self.history):],inputIn[0][0])
+                    outputStartIndex = inputEndIndex
+
+                    outputIn = mainArr[outputStartIndex:]
+                    print(outputIn.shape)
+                    outputIn = self.getOutput(outputIn,inputIn[0][0])
+                    print(outputIn.shape)
+                    outputEndIndex = outputStartIndex + len(outputIn)
+                    if(outputEndIndex >= (outputStartIndex + self.future)):
+                        inputTubleItem = (inputStartIndex,inputEndIndex)
+                        outputTubleItem = (outputStartIndex,outputEndIndex)
+                        inputTuble.append(inputTubleItem)
+                        outputTuble.append(outputTubleItem)
+        return inputTuble,outputTuble,mainArr
                 
 
 
 
     def getOutput (self,arr,day):
-        ret = list()
+        ret = []
+
+        index = 0
+
+        while ( index < len(arr) and  arr[index:][0][0] == day):
+            index +=1
+        
+        
+
+        ret = arr[0:index]
+            
+
+
         return ret
 
 
