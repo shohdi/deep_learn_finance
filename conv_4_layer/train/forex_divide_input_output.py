@@ -33,9 +33,9 @@ class ForexDivideInputOutput:
                     outputStartIndex = inputEndIndex
 
                     outputIn = mainArr[outputStartIndex:]
-                    print(outputIn.shape)
+                    #print(outputIn.shape)
                     outputIn = self.getOutput(outputIn,inputIn[0][0])
-                    print(outputIn.shape)
+                    #print(outputIn.shape)
                     outputEndIndex = outputStartIndex + len(outputIn)
                     if(outputEndIndex >= (outputStartIndex + self.future)):
                         inputTubleItem = (inputStartIndex,inputEndIndex)
