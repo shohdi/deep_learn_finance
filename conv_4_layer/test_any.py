@@ -1,5 +1,6 @@
 from train.forex_divide_input_output import ForexDivideInputOutput
 from train.input_average import InputAverage
+from train.output_calc import OutputCalc
 
 #1/1 - 1/50 - 1/100 - 1/500 - 1/1000
 
@@ -13,7 +14,11 @@ def main(_):
     inputTuble,outputTuble,mainArr = test.getInputOutput();
     iAvg = InputAverage();
     average = iAvg.getInputAverage(OUTPUT_SIZE,inputTuble,mainArr);
-    print('average ' , average);
+
+    outputC = OutputCalc();
+    outputArr = outputC.calcOutput(mainArr,average,outputTuble);
+    print('output ' , outputArr);
+
     #print("input ",inputTuble," output ",outputTuble)
 
 main('')
