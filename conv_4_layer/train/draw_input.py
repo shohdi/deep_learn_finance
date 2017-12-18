@@ -27,14 +27,15 @@ class DrawInput:
         graphHight = myMax - myMin;
 
         xPlace = 2;
-        
+        drawPage = np.array(shape=(widthPixels,widthPixels));
+
         for i in range(len(arr)):
             candle = arr[i];
             dir = 0;
             if(candle[0] > candle[1]):
                 dir = 128;
             
-            drawPage = np.array(shape=(widthPixels,widthPixels));
+            
             down = 0;
             if(dir == 0):
                 down = candle[0];
@@ -55,15 +56,25 @@ class DrawInput:
 
             indexX = xPlace;
 
+            self.drawBox(dir,indexX,indexX+3,indexY,yMaxPlace+1,drawPage);
+
             while (indexX < (xPlace+3)):
                 while (indexY < (yMaxPlace+1)):
                     
-
 
                     indexY = indexY + 1;               
 
 
                 indexX = indexX + 1;
+    
+    def drawBox(self,dir,xStart,xEnd,yStart,yEnd,arr):
+        for i in range(xEnd - xStart):
+            for j in range(yEnd - yStart):
+                xIndex = i+xStart;
+                yIndex = j+yStart;
+                arr[xIndex,yIndex] = dir;
+
+        return arr;
 
         
 
