@@ -27,46 +27,64 @@ class DrawInput:
         graphHight = myMax - myMin;
 
         xPlace = 2;
-        drawPage = np.array(shape=(widthPixels,widthPixels));
+        drawPage = np.empty(shape=(widthPixels,widthPixels),dtype=float);
+        drawPage.fill(255);
 
         for i in range(len(arr)):
             candle = arr[i];
-            dir = 0;
-            if(candle[0] > candle[1]):
-                dir = 128;
-            
-            
-            down = 0;
-            if(dir == 0):
-                down = candle[0];
-                up = candle[1];
-            else :
-                down = candle[1];
-                up = candle[0];
-            
-            yPlace = down - myMin;
-            yPlace = (widthPixels * yPlace)/graphHight;
+            self.drawOneCandle(xPlace,drawPage,candle,myMin,myMax,widthPixels,graphHight);            
+            xPlace = xPlace + 5;
 
-            yPlace = int(round(yPlace,0));
-
-            yMaxPlace  = up - myMin;
-            yMaxPlace = (widthPixels * yMaxPlace)/graphHight;
-
-            indexY = yPlace;
-
-            indexX = xPlace;
-
-            self.drawBox(dir,indexX,indexX+3,indexY,yMaxPlace+1,drawPage);
-
-            while (indexX < (xPlace+3)):
-                while (indexY < (yMaxPlace+1)):
-                    
-
-                    indexY = indexY + 1;               
-
-
-                indexX = indexX + 1;
     
+        return drawPage;
+
+
+    def drawOneCandle (self,xPlace,drawPage,candle,myMin,myMax,widthPixels,graphHight):
+        dir = 0;
+        if(candle[0] > candle[1]):
+            dir = 128;
+        
+        #draw candle body
+        down = 0;
+        up = 0;
+        if(dir == 0):
+            down = candle[0];
+            up = candle[1];
+        else :
+            down = candle[1];
+            up = candle[0];
+        
+        yPlace = self.calculateY(down,myMin,widthPixels,graphHight);
+        yMaxPlace = self.calculateY(up,myMin,widthPixels,graphHight);
+
+        
+
+
+        indexY = yPlace;
+
+        indexX = xPlace;
+
+        drawPage = self.drawBox(dir,indexX,indexX+3,indexY,yMaxPlace+1,drawPage);
+        #draw high and low
+        indexX = indexX + 1;
+        high = candle[2];
+        low = candle[3];
+
+        yPlace = self.calculateY(low,myMin,widthPixels,graphHight);
+        yMaxPlace = self.calculateY(high,myMin,widthPixels,graphHight);
+       
+        indexY = yPlace;
+        drawPage = self.drawBox(dir,indexX,indexX+1,indexY,yMaxPlace+1,drawPage);
+
+    def calculateY (self,val,myMin,widthPixels,graphHight):
+        yPlace = val - myMin;
+        yPlace = ((widthPixels-1) * yPlace)/graphHight;
+        yPlace = int(round(yPlace,0));
+        if(yPlace > (widthPixels-1)):
+            yPlace = widthPixels-1;
+        return yPlace;
+        
+
     def drawBox(self,dir,xStart,xEnd,yStart,yEnd,arr):
         for i in range(xEnd - xStart):
             for j in range(yEnd - yStart):

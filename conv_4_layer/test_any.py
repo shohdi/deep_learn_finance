@@ -1,6 +1,13 @@
 from train.forex_divide_input_output import ForexDivideInputOutput
 from train.input_average import InputAverage
 from train.output_calc import OutputCalc
+from train.draw_input import DrawInput
+import numpy as np
+import scipy.misc as smp
+
+
+
+
 
 #1/1 - 1/50 - 1/100 - 1/500 - 1/1000
 
@@ -17,6 +24,14 @@ def main(_):
 
     outputC = OutputCalc();
     outputArr = outputC.calcOutput(mainArr,average,outputTuble);
+    
+    drawClass = DrawInput();
+    inputImgs = drawClass.drawAllInputs(inputTuble,mainArr);
+
+    arr = np.transpose(inputImgs[0],(1,0) );
+    img = smp.toimage(arr);
+    
+    img.show();
     print('output ' , outputArr);
 
     #print("input ",inputTuble," output ",outputTuble)
