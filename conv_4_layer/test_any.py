@@ -28,10 +28,14 @@ def main(_):
     drawClass = DrawInput();
     inputImgs = drawClass.drawAllInputs(inputTuble,mainArr);
 
-    arr = np.transpose(inputImgs[0],(1,0) );
-    img = smp.toimage(arr);
+    
+    img = smp.toimage(inputImgs[0]);
     
     img.show();
+
+    img1 = smp.toimage(inputImgs[1]);
+    img1.show();
+
     print('output ' , outputArr);
 
     #print("input ",inputTuble," output ",outputTuble)

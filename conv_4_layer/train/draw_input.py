@@ -60,11 +60,11 @@ class DrawInput:
         
 
 
-        indexY = yPlace;
+        indexY = yMaxPlace;
 
         indexX = xPlace;
 
-        drawPage = self.drawBox(dir,indexX,indexX+3,indexY,yMaxPlace+1,drawPage);
+        drawPage = self.drawBox(dir,indexX,indexX+3,indexY,yPlace+1,drawPage);
         #draw high and low
         indexX = indexX + 1;
         high = candle[2];
@@ -73,8 +73,8 @@ class DrawInput:
         yPlace = self.calculateY(low,myMin,widthPixels,graphHight);
         yMaxPlace = self.calculateY(high,myMin,widthPixels,graphHight);
        
-        indexY = yPlace;
-        drawPage = self.drawBox(dir,indexX,indexX+1,indexY,yMaxPlace+1,drawPage);
+        indexY = yMaxPlace;
+        drawPage = self.drawBox(dir,indexX,indexX+1,indexY,yPlace+1,drawPage);
 
     def calculateY (self,val,myMin,widthPixels,graphHight):
         yPlace = val - myMin;
@@ -82,7 +82,7 @@ class DrawInput:
         yPlace = int(round(yPlace,0));
         if(yPlace > (widthPixels-1)):
             yPlace = widthPixels-1;
-        return yPlace;
+        return (widthPixels - 1) - yPlace;
         
 
     def drawBox(self,dir,xStart,xEnd,yStart,yEnd,arr):
@@ -90,7 +90,7 @@ class DrawInput:
             for j in range(yEnd - yStart):
                 xIndex = i+xStart;
                 yIndex = j+yStart;
-                arr[xIndex,yIndex] = dir;
+                arr[yIndex,xIndex] = dir;
 
         return arr;
 
