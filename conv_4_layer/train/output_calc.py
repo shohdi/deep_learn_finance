@@ -5,6 +5,8 @@ class OutputCalc:
 
     def calcOutput(self,arr,average,outputTuble):
         outputRet = [];
+        outputFirst = [];
+        outputSecond = [];
         for i in range(len(outputTuble)):
             loc = outputTuble[i];
             outputArr = arr[loc[0]:loc[1]];
@@ -25,19 +27,25 @@ class OutputCalc:
             foundSignal = False;
             if(self.checkIndexes(upIndex,upFailIndex)):
                 outputRet.append([1,0,0]);
+                outputFirst.append([1.0]);
+                outputSecond.append([1.0]);
                 foundSignal = True;
             
             
             if(self.checkIndexes(downIndex,downFailIndex)):
                 outputRet.append([0,0,1]);
+                outputFirst.append([1.0]);
+                outputSecond.append([0.0]);
                 foundSignal = True;
 
             
             if(not foundSignal):
                 outputRet.append([0,1,0]);
+                outputFirst.append([0.0]);
+                outputSecond.append([-1.0]);
         
 
-        return np.array(outputRet);
+        return np.array(outputRet),np.array(outputFirst),np.array(outputSecond);
 
             
 

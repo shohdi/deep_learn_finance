@@ -1,9 +1,13 @@
 import numpy as np
+from train.compress_candles import CompressCandles
 
 
 
 
 class DrawInput:
+    def __init__(self,compressCandles,multi):
+        self.compressCandles = compressCandles;
+        self.multi = multi;
 
 
     def drawAllInputs(self,inputTuble,arr):
@@ -11,6 +15,7 @@ class DrawInput:
         for i in range (len(inputTuble)):
             key = inputTuble[i];
             inputArr = arr[key[0]:key[1]];
+            inputArr = self.compressCandles.compressCandles(inputArr,self.multi);
             inputArr = inputArr[:,2:];
             newInput = self.drawOneInput(inputArr);
             ret.append(newInput);

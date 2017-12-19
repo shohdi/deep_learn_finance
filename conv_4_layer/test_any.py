@@ -4,6 +4,7 @@ from train.output_calc import OutputCalc
 from train.draw_input import DrawInput
 import numpy as np
 import scipy.misc as smp
+from train.compress_candles import CompressCandles
 
 
 
@@ -23,9 +24,12 @@ def main(_):
     average = iAvg.getInputAverage(OUTPUT_SIZE,inputTuble,mainArr);
 
     outputC = OutputCalc();
-    outputArr = outputC.calcOutput(mainArr,average,outputTuble);
+    outputArr,outputFirst,outputSecond = outputC.calcOutput(mainArr,average,outputTuble);
     
-    drawClass = DrawInput();
+    
+
+
+    drawClass = DrawInput(CompressCandles(),10);
     inputImgs = drawClass.drawAllInputs(inputTuble,mainArr);
 
     
@@ -33,10 +37,12 @@ def main(_):
     
     img.show();
 
-    img1 = smp.toimage(inputImgs[1]);
+    img1 = smp.toimage(inputImgs[10]);
     img1.show();
 
-    print('output ' , outputArr);
+    #print('output ' , outputSecond);
+
+    
 
     #print("input ",inputTuble," output ",outputTuble)
 
