@@ -5,8 +5,10 @@ from train.compress_candles import CompressCandles
 
 
 class DrawInput:
-    def __init__(self,compressCandles,multi):
-        self.compressCandles = compressCandles;
+    def __init__(self,multi):
+        #this line for isc only
+        self.compressCandles = CompressCandles();
+        
         self.multi = multi;
 
 
