@@ -37,7 +37,7 @@ class DeepInputRet :
             img = smp.toimage(inputImgs[0]);
             img.show();
         #print("input " , inputImgs);
-        inputImgs = inputImgs/255.0
+        
         
         return inputImgs,outputFirst;
 
