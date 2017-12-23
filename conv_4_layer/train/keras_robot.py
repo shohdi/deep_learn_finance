@@ -8,8 +8,7 @@ from train.deep_input_ret import DeepInputRet
 
 flags = tf.app.flags;
 FLAGS = flags.FLAGS;
-flags.DEFINE_string('shohdi_debug','True','shohdi_debug');
-
+flags.DEFINE_string('shohdi_debug','False','shohdi_debug');
 
 
 INPUT_SIZE = 60;

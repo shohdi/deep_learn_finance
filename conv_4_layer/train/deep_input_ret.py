@@ -3,7 +3,11 @@ from train.input_average import InputAverage
 from train.output_calc import OutputCalc
 from train.draw_input import DrawInput
 import numpy as np
-import scipy.misc as smp
+import tensorflow as tf
+flags = tf.app.flags;
+FLAGS = flags.FLAGS;
+
+   
 from train.compress_candles import CompressCandles
 
 
@@ -27,8 +31,11 @@ class DeepInputRet :
         outputArr,outputFirst,outputSecond = self.ouputCalc.calcOutput(mainArr,average,outputTuble);
         #print("output " , outputFirst);
         inputImgs = self.drawInput.drawAllInputs(inputTuble,mainArr);
-        img = smp.toimage(inputImgs[0]);
-        img.show();
+        
+        if(FLAGS.shohdi_debug == 'False'):
+            import scipy.misc as smp
+            img = smp.toimage(inputImgs[0]);
+            img.show();
         #print("input " , inputImgs);
         inputImgs = inputImgs/255.0
         

@@ -40,8 +40,12 @@ class ForexDivideInputOutput:
                     if(outputEndIndex >= (outputStartIndex + self.future)):
                         inputTubleItem = (inputStartIndex,inputEndIndex)
                         outputTubleItem = (outputStartIndex,outputEndIndex)
-                        inputTuble.append(inputTubleItem)
-                        outputTuble.append(outputTubleItem)
+                        inputArrItem = mainArr[inputTubleItem[0]:inputTubleItem[1]];
+                        inputArrItem = inputArrItem[:,2:];
+                        amax = np.amax(inputArrItem);
+                        if(amax > 0):
+                            inputTuble.append(inputTubleItem)
+                            outputTuble.append(outputTubleItem)
         return inputTuble,outputTuble,mainArr
                 
 
