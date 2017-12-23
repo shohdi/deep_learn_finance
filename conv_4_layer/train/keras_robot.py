@@ -9,12 +9,12 @@ from train.deep_input_ret import DeepInputRet
 flags = tf.app.flags;
 FLAGS = flags.FLAGS;
 flags.DEFINE_string('shohdi_debug','False','shohdi_debug');
+flags.DEFINE_integer('INPUT_SIZE',60,'INPUT_SIZE');
+flags.DEFINE_integer('OUTPUT_SIZE',15,'OUTPUT_SIZE');
+flags.DEFINE_integer('HOW_MANY_MINUTES',10,'HOW_MANY_MINUTES');
+flags.DEFINE_string('INPUT_FOLDER','input','INPUT_FOLDER');
 
 
-INPUT_SIZE = 60;
-OUTPUT_SIZE = 15;
-HOW_MANY_MINUTES = 10;
-FOLDER = "input";
 
 
 #1/1 - 1/50 - 1/100 - 1/500 - 1/1000
@@ -22,11 +22,11 @@ FOLDER = "input";
 
 def main(_):
     
-    FILE_NAMES = os.path.join(FOLDER,'myOldData.csv');
+    FILE_NAMES = os.path.join(FLAGS.INPUT_FOLDER,'myOldData.csv');
 
     
     
-    inputClass = DeepInputRet(INPUT_SIZE,OUTPUT_SIZE,FILE_NAMES,HOW_MANY_MINUTES);
+    inputClass = DeepInputRet(FLAGS.INPUT_SIZE,FLAGS.OUTPUT_SIZE,FILE_NAMES,FLAGS.HOW_MANY_MINUTES);
     train_x,train_y = inputClass.getSuccessFailData();
     
 
