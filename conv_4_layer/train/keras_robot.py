@@ -8,6 +8,8 @@ from train.deep_input_ret import DeepInputRet
 
 from train.keras_helper import KerasHelper
 
+from train.join_input import JoinInput
+
 flags = tf.app.flags;
 FLAGS = flags.FLAGS;
 flags.DEFINE_string('shohdi_debug','False','shohdi_debug');
@@ -26,20 +28,31 @@ flags.DEFINE_float('valSplit',0.2,'valSplit');
 flags.DEFINE_string('outputDir','output','outputDir');
 
 flags.DEFINE_string('inputTrainData','','inputTrainData');
+flags.DEFINE_string('trainFiles','myOldData.csv','trainFiles');
+flags.DEFINE_string('testFiles','myOldData.csv','testFiles');
 
 #1/1 - 1/50 - 1/100 - 1/500 - 1/1000
 
 
 def main(_):
     
-    FILE_NAMES = os.path.join(FLAGS.INPUT_FOLDER,'myOldData.csv');
+    joinFilesClass = JoinInput();
+    trainFileNames = joinFilesClass.joinInput(FLAGS.INPUT_FOLDER,FLAGS.trainFiles);
+    testFileNames = joinFilesClass.joinInput(FLAGS.INPUT_FOLDER,FLAGS.testFiles);
+
+    print('train files ',trainFileNames);
+    print('test files ',testFileNames);
 
     
     
-    inputClass = DeepInputRet(FLAGS.INPUT_SIZE,FLAGS.OUTPUT_SIZE,FILE_NAMES,FLAGS.HOW_MANY_MINUTES);
+    inputClass = DeepInputRet(FLAGS.INPUT_SIZE,FLAGS.OUTPUT_SIZE,trainFileNames,FLAGS.HOW_MANY_MINUTES);
     xTrain,yTrain = inputClass.getSuccessFailData();
-    xTest = xTrain;
-    yTest = yTrain;
+    
+
+    inputTestClass = DeepInputRet(FLAGS.INPUT_SIZE,FLAGS.OUTPUT_SIZE,testFileNames,FLAGS.HOW_MANY_MINUTES);
+    xTest,yTest = inputTestClass.getSuccessFailData();
+
+
     helper = KerasHelper();
 
     helper.convNetTrain(xTrain,yTrain,xTest,yTest,FLAGS.npEpoch,FLAGS.batchSize,FLAGS.valSplit,FLAGS.outputDir,FLAGS.inputTrainData);
