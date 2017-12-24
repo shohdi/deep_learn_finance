@@ -25,6 +25,7 @@ flags.DEFINE_float('valSplit',0.2,'valSplit');
 
 flags.DEFINE_string('outputDir','output','outputDir');
 
+flags.DEFINE_string('inputTrainData','','inputTrainData');
 
 #1/1 - 1/50 - 1/100 - 1/500 - 1/1000
 
@@ -41,7 +42,7 @@ def main(_):
     yTest = yTrain;
     helper = KerasHelper();
 
-    helper.convNetTrain(xTrain,yTrain,xTest,yTest,FLAGS.npEpoch,FLAGS.batchSize,FLAGS.valSplit,FLAGS.outputDir);
+    helper.convNetTrain(xTrain,yTrain,xTest,yTest,FLAGS.npEpoch,FLAGS.batchSize,FLAGS.valSplit,FLAGS.outputDir,FLAGS.inputTrainData);
    
     
 

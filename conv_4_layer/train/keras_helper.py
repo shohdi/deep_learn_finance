@@ -37,7 +37,7 @@ class KerasHelper:
         return model;
 
 
-    def convNetTrain(self,xTrain,yTrain,xTest,yTest,nbEpoch,batchSize,valSplit,outputDir):
+    def convNetTrain(self,xTrain,yTrain,xTest,yTest,nbEpoch,batchSize,valSplit,outputDir,inputTrainData):
         inputShape = np.shape(xTrain[0]);
         print(inputShape);
         inputShape = (inputShape[0],inputShape[1],1);
@@ -54,8 +54,13 @@ class KerasHelper:
         print(xTrain.shape[0],'train samples');
         print(xTest.shape[0],'test samples');
         model = self.convNetBuild(inputShape);
+        if(inputTrainData != ''):
+            print('train file',inputTrainData);
+            oldTrainData = os.path.join(outputDir,inputTrainData);
+            print('full path train file',oldTrainData);
+            model.load_weights(oldTrainData);
         model.compile(loss="binary_crossentropy",optimizer=Adam(),metrics=["accuracy"]);
-        filePath = os.path.join(outputDir,"model-{epoch:06d}.h5");
+        filePath = os.path.join(outputDir,"filter-model-{epoch:06d}.h5");
         checkpoint = ModelCheckpoint(filepath=filePath,save_best_only=True);
         history = model.fit(xTrain,yTrain,batch_size=batchSize,epochs=nbEpoch,verbose=1,validation_split=valSplit,callbacks=[checkpoint]);
         score = model.evaluate(xTest,yTest,verbose=1);
