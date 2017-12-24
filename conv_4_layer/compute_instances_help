@@ -1,0 +1,4 @@
+gcloud compute instances list
+gcloud compute instances start ml1
+gcloud compute ssh ml1
+source activate carnd-term1
