@@ -5,6 +5,7 @@ from train.draw_input import DrawInput
 import numpy as np
 import tensorflow as tf
 import random as random
+import os as os
 flags = tf.app.flags;
 FLAGS = flags.FLAGS;
 
@@ -79,7 +80,11 @@ class DeepInputRet :
         if(FLAGS.shohdi_debug == 'False'):
             import scipy.misc as smp
             img = smp.toimage(inputImgs[0]);
-            img.show();
+            smp.imsave(os.path.join(FLAGS.outputDir,'img1.png') ,img);
+            img = smp.toimage(inputImgs[1]);
+            smp.imsave(os.path.join(FLAGS.outputDir,'img2.png') ,img);
+            img = smp.toimage(inputImgs[2]);
+            smp.imsave(os.path.join(FLAGS.outputDir,'img3.png') ,img);
         #print("input " , inputImgs);
 
         upArr = [];
