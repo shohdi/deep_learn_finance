@@ -31,6 +31,8 @@ flags.DEFINE_string('inputTrainData','','inputTrainData');
 flags.DEFINE_string('trainFiles','myOldData.csv','trainFiles');
 flags.DEFINE_string('testFiles','myOldData.csv','testFiles');
 
+flags.DEFINE_bool('isOperation',True,'isOperation');
+
 #1/1 - 1/50 - 1/100 - 1/500 - 1/1000
 
 
@@ -44,18 +46,34 @@ def main(_):
     print('test files ',testFileNames);
 
     
-    
-    inputClass = DeepInputRet(FLAGS.INPUT_SIZE,FLAGS.OUTPUT_SIZE,trainFileNames,FLAGS.HOW_MANY_MINUTES);
-    xTrain,yTrain = inputClass.getSuccessFailData();
-    
+    if(FLAGS.isOperation == False):
+        
 
-    inputTestClass = DeepInputRet(FLAGS.INPUT_SIZE,FLAGS.OUTPUT_SIZE,testFileNames,FLAGS.HOW_MANY_MINUTES);
-    xTest,yTest = inputTestClass.getSuccessFailData();
+        inputClass = DeepInputRet(FLAGS.INPUT_SIZE,FLAGS.OUTPUT_SIZE,trainFileNames,FLAGS.HOW_MANY_MINUTES);
+        
+        xTrain,yTrain = inputClass.getSuccessFailData();
+        
+
+        inputTestClass = DeepInputRet(FLAGS.INPUT_SIZE,FLAGS.OUTPUT_SIZE,testFileNames,FLAGS.HOW_MANY_MINUTES);
+        xTest,yTest = inputTestClass.getSuccessFailData();
 
 
-    helper = KerasHelper();
+        helper = KerasHelper();
 
-    helper.convNetTrain(xTrain,yTrain,xTest,yTest,FLAGS.npEpoch,FLAGS.batchSize,FLAGS.valSplit,FLAGS.outputDir,FLAGS.inputTrainData);
+        helper.convNetTrain(xTrain,yTrain,xTest,yTest,FLAGS.npEpoch,FLAGS.batchSize,FLAGS.valSplit,FLAGS.outputDir,FLAGS.inputTrainData);
+    else :
+        inputClass = DeepInputRet(FLAGS.INPUT_SIZE,FLAGS.OUTPUT_SIZE,trainFileNames,FLAGS.HOW_MANY_MINUTES);
+        
+        xTrain,yTrain = inputClass.getOperationData();
+        
+
+        inputTestClass = DeepInputRet(FLAGS.INPUT_SIZE,FLAGS.OUTPUT_SIZE,testFileNames,FLAGS.HOW_MANY_MINUTES);
+        xTest,yTest = inputTestClass.getOperationData();
+
+
+        helper = KerasHelper();
+
+        helper.convNetTrain(xTrain,yTrain,xTest,yTest,FLAGS.npEpoch,FLAGS.batchSize,FLAGS.valSplit,FLAGS.outputDir,FLAGS.inputTrainData);
    
     
 

@@ -41,6 +41,31 @@ class DeepInputRet :
         
         return inputImgs,outputFirst;
 
+
+    def getOperationData(self):
+        inputTuble,outputTuble,mainArr = self.forexDivideInputOutput.getInputOutput();
+        average = self.inputAverage.getInputAverage(self.future,inputTuble,mainArr);
+        outputArr,outputFirst,outputSecond = self.ouputCalc.calcOutput(mainArr,average,outputTuble);
+        #print("output " , outputFirst);
+        inputImgs = self.drawInput.drawAllInputs(inputTuble,mainArr);
+        
+        if(FLAGS.shohdi_debug == 'False'):
+            import scipy.misc as smp
+            img = smp.toimage(inputImgs[0]);
+            img.show();
+        #print("input " , inputImgs);
+
+        input = [];
+        output = [];
+
+        for i in range(len(outputSecond)):
+            if(outputSecond[i][0] >= 0):
+                input.append(inputImgs[i]);
+                output.append(outputSecond[i]);
+        
+        
+        return np.array(input),np.array(output);
+
         
 
         
