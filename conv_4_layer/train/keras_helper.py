@@ -6,6 +6,7 @@ from keras.layers.convolutional import MaxPooling2D
 from keras.layers.core import Activation
 from keras.layers.core import Flatten
 from keras.layers.core import Dense
+from keras.layers.core import Dropout
 from keras.datasets import mnist
 from keras.utils import np_utils
 from keras.optimizers import SGD,RMSprop,Adam
@@ -18,18 +19,31 @@ import os as os
 class KerasHelper:
     def convNetBuild(self,input_shape):
         model = Sequential();
-        model.add(Conv2D(  32,kernel_size=5,padding="same",input_shape=input_shape));
+        model.add(Conv2D(  64,kernel_size=5,padding="same",input_shape=input_shape));
         model.add(Activation('relu'));
+
+        model.add(Conv2D(  64,kernel_size=5,padding="same",input_shape=input_shape));
+        model.add(Activation('relu'));
+
         model.add(MaxPooling2D(pool_size=(2,2),strides=(2,2)));
 
-        model.add(Conv2D(64,kernel_size=5,padding="same"));
+        model.add(Dropout(0.2));
+
+        model.add(Conv2D(128,kernel_size=5,padding="same"));
         model.add(Activation('relu'));
+
+        model.add(Conv2D(128,kernel_size=5,padding="same"));
+        model.add(Activation('relu'));
+
         model.add(MaxPooling2D(pool_size=(2,2),strides=(2,2)));
+
+        model.add(Dropout(0.2));
 
         model.add(Flatten());
         model.add(Dense(1024));
         model.add(Activation('relu'));
 
+        model.add(Dropout(0.2));
 
         model.add(Dense(1));
         model.add(Activation('sigmoid'));
