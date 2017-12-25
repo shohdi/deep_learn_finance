@@ -46,34 +46,22 @@ def main(_):
     print('test files ',testFileNames);
 
     
-    if(FLAGS.isOperation == False):
+    
         
 
-        inputClass = DeepInputRet(FLAGS.INPUT_SIZE,FLAGS.OUTPUT_SIZE,trainFileNames,FLAGS.HOW_MANY_MINUTES);
-        
-        xTrain,yTrain = inputClass.getSuccessFailData();
-        
+    inputClass = DeepInputRet(FLAGS.INPUT_SIZE,FLAGS.OUTPUT_SIZE,trainFileNames,FLAGS.HOW_MANY_MINUTES);
+    
+    xTrain,yTrain = inputClass.getAllResultsEqual();
+    
 
-        inputTestClass = DeepInputRet(FLAGS.INPUT_SIZE,FLAGS.OUTPUT_SIZE,testFileNames,FLAGS.HOW_MANY_MINUTES);
-        xTest,yTest = inputTestClass.getSuccessFailData();
-
-
-        helper = KerasHelper();
-
-        helper.convNetTrain(xTrain,yTrain,xTest,yTest,FLAGS.npEpoch,FLAGS.batchSize,FLAGS.valSplit,FLAGS.outputDir,FLAGS.inputTrainData);
-    else :
-        inputClass = DeepInputRet(FLAGS.INPUT_SIZE,FLAGS.OUTPUT_SIZE,trainFileNames,FLAGS.HOW_MANY_MINUTES);
-        
-        xTrain,yTrain = inputClass.getOperationData();
-        
-
-        inputTestClass = DeepInputRet(FLAGS.INPUT_SIZE,FLAGS.OUTPUT_SIZE,testFileNames,FLAGS.HOW_MANY_MINUTES);
-        xTest,yTest = inputTestClass.getOperationData();
+    inputTestClass = DeepInputRet(FLAGS.INPUT_SIZE,FLAGS.OUTPUT_SIZE,testFileNames,FLAGS.HOW_MANY_MINUTES);
+    xTest,yTest = inputTestClass.getAllResultsEqual();
 
 
-        helper = KerasHelper();
+    helper = KerasHelper();
 
-        helper.convNetTrain(xTrain,yTrain,xTest,yTest,FLAGS.npEpoch,FLAGS.batchSize,FLAGS.valSplit,FLAGS.outputDir,FLAGS.inputTrainData);
+    helper.convNetTrain(xTrain,yTrain,xTest,yTest,FLAGS.npEpoch,FLAGS.batchSize,FLAGS.valSplit,FLAGS.outputDir,FLAGS.inputTrainData);
+    
    
     
 

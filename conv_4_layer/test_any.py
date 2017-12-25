@@ -6,7 +6,7 @@ import os as os;
 
 from train.deep_input_ret import DeepInputRet
 
-from train.keras_helper import KerasHelper
+
 
 from train.join_input import JoinInput
 
@@ -46,16 +46,10 @@ def main(_):
     
     
     inputClass = DeepInputRet(FLAGS.INPUT_SIZE,FLAGS.OUTPUT_SIZE,trainFileNames,FLAGS.HOW_MANY_MINUTES);
-    xTrain,yTrain = inputClass.getSuccessFailData();
+    xTrain,yTrain = inputClass.getAllResultsEqual();
     
 
-    inputTestClass = DeepInputRet(FLAGS.INPUT_SIZE,FLAGS.OUTPUT_SIZE,testFileNames,FLAGS.HOW_MANY_MINUTES);
-    xTest,yTest = inputTestClass.getSuccessFailData();
-
-
-    helper = KerasHelper();
-
-    helper.convNetTrain(xTrain,yTrain,xTest,yTest,FLAGS.npEpoch,FLAGS.batchSize,FLAGS.valSplit,FLAGS.outputDir,FLAGS.inputTrainData);
+    
    
     
 
