@@ -5,4 +5,4 @@ source activate carnd-term1
 
 
 export LD_LIBRARY_PATH='/usr/local/cuda-8.0/lib64;/usr/lib/nvidia-384/'
-python -m train.keras_robot --trainFiles='trainYear1.csv;trainYear2.csv;trainYear3.csv' --testFiles='testYear.csv'
+python -m train.keras_robot --trainFiles='trainYear3.csv;trainYear2.csv;trainYear1.csv;' --testFiles='testYear.csv'
