@@ -70,7 +70,7 @@ class DeepInputRet :
 
 
 
-    def getAllResultsEqual(self):
+    def getAllResultsEqual(self,isTest):
         inputTuble,outputTuble,mainArr = self.forexDivideInputOutput.getInputOutput();
         average = self.inputAverage.getInputAverage(self.future,inputTuble,mainArr);
         outputArr,outputFirst,outputSecond = self.ouputCalc.calcOutput(mainArr,average,outputTuble);
@@ -86,7 +86,8 @@ class DeepInputRet :
             img = smp.toimage(inputImgs[2]);
             smp.imsave(os.path.join(FLAGS.outputDir,'img3.png') ,img);
         #print("input " , inputImgs);
-
+        if(isTest):
+            return inputImgs,np.array(outputArr);
         upArr = [];
         downArr = [];
         noMove = [];

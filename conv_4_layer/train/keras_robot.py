@@ -51,11 +51,11 @@ def main(_):
 
     inputClass = DeepInputRet(FLAGS.INPUT_SIZE,FLAGS.OUTPUT_SIZE,trainFileNames,FLAGS.HOW_MANY_MINUTES);
     
-    xTrain,yTrain = inputClass.getAllResultsEqual();
+    xTrain,yTrain = inputClass.getAllResultsEqual(False);
     
 
     inputTestClass = DeepInputRet(FLAGS.INPUT_SIZE,FLAGS.OUTPUT_SIZE,testFileNames,FLAGS.HOW_MANY_MINUTES);
-    xTest,yTest = inputTestClass.getAllResultsEqual();
+    xTest,yTest = inputTestClass.getAllResultsEqual(True);
 
 
     helper = KerasHelper();
