@@ -75,8 +75,19 @@ class DeepInputRet :
         average = self.inputAverage.getInputAverage(self.future,inputTuble,mainArr);
         outputArr,outputFirst,outputSecond = self.ouputCalc.calcOutput(mainArr,average,outputTuble);
         #print("output " , outputFirst);
-        inputImgs = self.drawInput.drawAllInputs(inputTuble,mainArr);
-        
+        inputImgs = [];
+        for i in range(len(inputTuble)):
+            oneArrayIndexes = inputTuble[i];
+            oneArray = mainArr[oneArrayIndexes[0]:oneArrayIndexes[1]];
+            oneArray = oneArray[:,2:];
+            oneArrayMax = np.amax(oneArray);
+            oneArrayMin = np.amin(oneArray);
+            oneArray = np.array(oneArray);
+            oneArray = (oneArray - oneArrayMin)/(oneArrayMax-oneArrayMin);
+            oneArray = oneArray.flatten();
+            inputImgs.append(oneArray);
+        inputImgs = np.array(inputImgs);
+        '''
         if(FLAGS.shohdi_debug == 'False'):
             import scipy.misc as smp
             img = smp.toimage(inputImgs[0]);
@@ -85,6 +96,7 @@ class DeepInputRet :
             smp.imsave(os.path.join(FLAGS.outputDir,'img2.png') ,img);
             img = smp.toimage(inputImgs[2]);
             smp.imsave(os.path.join(FLAGS.outputDir,'img3.png') ,img);
+        '''
         #print("input " , inputImgs);
         if(isTest):
             return inputImgs,np.array(outputArr);
