@@ -10,6 +10,8 @@ from keras.layers.core import Dropout
 from keras.datasets import mnist
 from keras.utils import np_utils
 from keras.optimizers import SGD,RMSprop,Adam
+import matplotlib
+matplotlib.use('Agg');
 import matplotlib.pyplot as plt
 from keras.callbacks import ModelCheckpoint
 import os as os
