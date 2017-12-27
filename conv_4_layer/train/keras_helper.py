@@ -63,6 +63,7 @@ class KerasHelper:
         model.add(Dropout(0.2));
 
         model.add(Dense(3));
+        model.add(Activation('relu'));
         model.add(Activation('softmax'));
 
         return model;
