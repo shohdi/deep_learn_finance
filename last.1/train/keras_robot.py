@@ -28,7 +28,7 @@ flags.DEFINE_float('valSplit',0.2,'valSplit');
 flags.DEFINE_string('outputDir','output','outputDir');
 
 flags.DEFINE_string('inputTrainData','','inputTrainData');
-flags.DEFINE_string('trainFiles','testYear.csv','trainFiles');
+flags.DEFINE_string('trainFiles','myOldData.csv','trainFiles');
 flags.DEFINE_string('testFiles','myOldData.csv','testFiles');
 
 flags.DEFINE_bool('isOperation',True,'isOperation');
