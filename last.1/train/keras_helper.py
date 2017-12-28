@@ -64,7 +64,8 @@ class KerasHelper:
         model.compile(loss="categorical_crossentropy",optimizer=Adam(),metrics=["accuracy"]);
         filePath = os.path.join(outputDir,"my-model-{epoch:06d}.h5");
         checkpoint = ModelCheckpoint(filepath=filePath,save_best_only=True);
-        history = model.fit(xTrain,yTrain,batch_size=batchSize,epochs=nbEpoch,verbose=1,validation_split=valSplit,callbacks=[checkpoint]);
+        #history = model.fit(xTrain,yTrain,batch_size=batchSize,epochs=nbEpoch,verbose=1,validation_split=valSplit,callbacks=[checkpoint]);
+        history = model.fit(xTrain,yTrain,batch_size=batchSize,epochs=nbEpoch,verbose=1,validation_data=(xTest,yTest),callbacks=[checkpoint]);
         score = model.evaluate(xTest,yTest,verbose=1);
         print("Test score:",score[0]);
         print("Test accuracy:",score[1]);

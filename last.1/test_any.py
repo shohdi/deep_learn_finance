@@ -46,7 +46,7 @@ def main(_):
     
     
     inputClass = DeepInputRet(FLAGS.INPUT_SIZE,FLAGS.OUTPUT_SIZE,trainFileNames,FLAGS.HOW_MANY_MINUTES);
-    xTrain,yTrain = inputClass.getAllResultsEqual(False);
+    xTrain,yTrain,xTest,yTest = inputClass.getAllResultsEqual(False,0.2);
     
 
     

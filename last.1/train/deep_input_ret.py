@@ -70,7 +70,7 @@ class DeepInputRet :
 
 
 
-    def getAllResultsEqual(self,isTest):
+    def getAllResultsEqual(self,isTest,valSplit):
         inputTuble,outputTuble,mainArr = self.forexDivideInputOutput.getInputOutput();
         average = self.inputAverage.getInputAverage(self.future,inputTuble,mainArr);
         outputArr,outputFirst,outputSecond = self.ouputCalc.calcOutput(mainArr,average,outputTuble);
@@ -87,6 +87,24 @@ class DeepInputRet :
             oneArray = oneArray.flatten();
             inputImgs.append(oneArray);
         inputImgs = np.array(inputImgs);
+        xTest = [];
+        yTest = [];
+        if(valSplit != None):
+            myLen = len(inputImgs);
+            valLen = int( myLen * valSplit);
+            valStart = myLen - valLen;
+            xTest = inputImgs[valStart:];
+            yTest = outputArr[valStart:];
+            inputImgs = inputImgs[0:valStart];
+            outputArr = outputArr[0:valStart];
+            outputFirst = outputFirst[0:valStart];
+            outputSecond = outputSecond[0:valStart];
+            inputTuble = inputTuble[0:valStart];
+            outputTuble = outputTuble[0:valStart];
+        
+
+
+
         '''
         if(FLAGS.shohdi_debug == 'False'):
             import scipy.misc as smp
@@ -99,7 +117,10 @@ class DeepInputRet :
         '''
         #print("input " , inputImgs);
         if(isTest):
-            return inputImgs,np.array(outputArr);
+            if(valSplit != None):
+                return inputImgs,np.array(outputArr),xTest,yTest;
+            else:
+                return inputImgs,np.array(outputArr);
         upArr = [];
         downArr = [];
         noMove = [];
@@ -148,8 +169,10 @@ class DeepInputRet :
 
 
 
-        
-        return np.array(ret),np.array(retOut);
+        if(valSplit != None):
+            return np.array(ret),np.array(retOut),xTest,yTest;
+        else:
+            return np.array(ret),np.array(retOut);
 
 
         
