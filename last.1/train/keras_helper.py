@@ -15,16 +15,27 @@ matplotlib.use('Agg');
 import matplotlib.pyplot as plt
 from keras.callbacks import ModelCheckpoint
 import os as os
+import tensorflow as tf
+
+flags = tf.app.flags;
+FLAGS = flags.FLAGS;
 
 
 
 class KerasHelper:
     def convNetBuild(self,input_shape):
         model = Sequential();
-        model.add(Dense(3,input_shape=input_shape));
+        model.add(Dense(1024,input_shape=input_shape));
         model.add(Activation('relu'));
+        model.add(Dense(1024));
+        model.add(Activation('relu'));
+        model.add(Dense(1024));
+        model.add(Activation('relu'));
+        model.add(Dense(3));
+        
         model.add(Activation('softmax'));
-
+        model_file = os.path.join(FLAGS.outputDir,'four_layer.h5');
+        model.save(model_file);
         return model;
 
 
