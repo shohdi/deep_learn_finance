@@ -6,6 +6,7 @@ import numpy as np
 import tensorflow as tf
 import random as random
 import os as os
+
 flags = tf.app.flags;
 FLAGS = flags.FLAGS;
 
@@ -69,13 +70,9 @@ class DeepInputRet :
         return np.array(input),np.array(output);
 
 
-
-    def getAllResultsEqual(self,isTest,valSplit):
-        inputTuble,outputTuble,mainArr = self.forexDivideInputOutput.getInputOutput();
-        average = self.inputAverage.getInputAverage(self.future,inputTuble,mainArr);
-        outputArr,outputFirst,outputSecond = self.ouputCalc.calcOutput(mainArr,average,outputTuble);
-        #print("output " , outputFirst);
-        inputImgs = [];
+    
+    def getInputImgs(self,inputTuble,mainArr):
+        inputImgs=[];
         for i in range(len(inputTuble)):
             oneArrayIndexes = inputTuble[i];
             oneArray = mainArr[oneArrayIndexes[0]:oneArrayIndexes[1]];
@@ -87,8 +84,10 @@ class DeepInputRet :
             oneArray = oneArray.flatten();
             inputImgs.append(oneArray);
         inputImgs = np.array(inputImgs);
-        xTest = [];
-        yTest = [];
+        return inputImgs;
+        
+    
+    def getSplitResult(self,valSplit,inputImgs,inputTuble,outputTuble,average,outputArr,outputFirst,outputSecond):
         if(valSplit != None):
             myLen = len(inputImgs);
             valLen = int( myLen * valSplit);
@@ -101,11 +100,46 @@ class DeepInputRet :
             outputSecond = outputSecond[0:valStart];
             inputTuble = inputTuble[0:valStart];
             outputTuble = outputTuble[0:valStart];
+        return xTest,yTest,inputImgs,outputArr,outputFirst,outputSecond,inputTuble,outputTuble;
         
+    def convertInputImagesToTwoDim (self,inputImgs):
+        
+        
+        print(np.shape(inputImgs));
+        inputImgs = np.lib.pad(inputImgs, ((0,0),(8,8)), 'constant', constant_values=(255));
+        print(np.shape(inputImgs));
+        inputImgs = inputImgs.reshape((-1,16,16));
+
+        print(np.shape(inputImgs));
+        return inputImgs;
+
+    def compressMyImage(self,inputImgs):
+        ret = [];
+        import scipy.ndimage;
+
+        for i in range(len(inputImgs)):
+            oneItem = scipy.ndimage.zoom(inputImgs[i],0.125,order=0);
+            ret.append(oneItem);
+            
 
 
 
-        '''
+        return np.array(ret);
+
+    def getAllResultsEqual(self,isTest,valSplit):
+        inputTuble,outputTuble,mainArr = self.forexDivideInputOutput.getInputOutput();
+        average = self.inputAverage.getInputAverage(self.future,inputTuble,mainArr);
+        outputArr,outputFirst,outputSecond = self.ouputCalc.calcOutput(mainArr,average,outputTuble);
+        #print("output " , outputFirst);
+        #inputImgs = self.getInputImgs(inputTuble,mainArr);
+        #inputImgs = self.convertInputImagesToTwoDim(inputImgs) * 255;
+
+        inputImgs = self.drawInput.drawAllInputs(inputTuble,mainArr);
+        inputImgs = self.compressMyImage(inputImgs);
+
+        xTest,yTest,inputImgs,outputArr,outputFirst,outputSecond,inputTuble,outputTuble = self.getSplitResult(valSplit,inputImgs,inputTuble,outputTuble,average,outputArr,outputFirst,outputSecond);
+
+        
         if(FLAGS.shohdi_debug == 'False'):
             import scipy.misc as smp
             img = smp.toimage(inputImgs[0]);
@@ -114,7 +148,7 @@ class DeepInputRet :
             smp.imsave(os.path.join(FLAGS.outputDir,'img2.png') ,img);
             img = smp.toimage(inputImgs[2]);
             smp.imsave(os.path.join(FLAGS.outputDir,'img3.png') ,img);
-        '''
+        
         #print("input " , inputImgs);
         if(isTest):
             if(valSplit != None):

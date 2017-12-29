@@ -15,7 +15,7 @@ FLAGS = flags.FLAGS;
 flags.DEFINE_string('shohdi_debug','False','shohdi_debug');
 flags.DEFINE_integer('INPUT_SIZE',60,'INPUT_SIZE');
 flags.DEFINE_integer('OUTPUT_SIZE',15,'OUTPUT_SIZE');
-flags.DEFINE_integer('HOW_MANY_MINUTES',10,'HOW_MANY_MINUTES');
+flags.DEFINE_integer('HOW_MANY_MINUTES',1,'HOW_MANY_MINUTES');
 flags.DEFINE_string('INPUT_FOLDER','input','INPUT_FOLDER');
 
 
@@ -51,7 +51,7 @@ def main(_):
 
     inputClass = DeepInputRet(FLAGS.INPUT_SIZE,FLAGS.OUTPUT_SIZE,trainFileNames,FLAGS.HOW_MANY_MINUTES);
     
-    xTrain,yTrain,xTest,yTest = inputClass.getAllResultsEqual(False,0.2);
+    xTrain,yTrain,xTest,yTest = inputClass.getAllResultsEqual(False,FLAGS.valSplit);
     
 
     
