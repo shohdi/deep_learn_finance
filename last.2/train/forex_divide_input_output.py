@@ -4,7 +4,7 @@ import numpy as np
 
 class ForexDivideInputOutput:
     def __init__(self,history,future,files):
-        self.history = history
+        self.history = history * 4;
         self.future = future
         self.files = files
         self.readFile = ReadFile(self.files)

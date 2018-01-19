@@ -30,16 +30,16 @@ class DrawInput:
     def drawOneInput(self,arr):
         myMax = np.amax(arr);
         myMin = np.amin(arr);
-        length = len(arr);
+        length = int(len(arr)/4);
         widthPixels = 2 + (length*5);
         graphHight = myMax - myMin;
 
         xPlace = 2;
         drawPage = np.empty(shape=(widthPixels,widthPixels),dtype=float);
         drawPage.fill(255);
-
-        for i in range(len(arr)):
-            candle = arr[i];
+        arrSmall = arr[len(arr)-length:];
+        for i in range(len(arrSmall)):
+            candle = arrSmall[i];
             self.drawOneCandle(xPlace,drawPage,candle,myMin,myMax,widthPixels,graphHight);            
             xPlace = xPlace + 5;
 
