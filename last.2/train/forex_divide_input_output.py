@@ -28,7 +28,8 @@ class ForexDivideInputOutput:
                 inputStartIndex = mainCycle
                 inputEndIndex = (mainCycle + self.history)
                 inputIn = mainArr[inputStartIndex : inputEndIndex ]
-                valid = self.checkArrInSameDay(inputIn)
+                #valid = self.checkArrInSameDay(inputIn)
+                valid = True;
                 if valid :
                     outputStartIndex = inputEndIndex
 

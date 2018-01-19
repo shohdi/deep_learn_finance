@@ -13,17 +13,17 @@ from train.join_input import JoinInput
 flags = tf.app.flags;
 FLAGS = flags.FLAGS;
 flags.DEFINE_string('shohdi_debug','False','shohdi_debug');
-flags.DEFINE_integer('INPUT_SIZE',60,'INPUT_SIZE');
-flags.DEFINE_integer('OUTPUT_SIZE',15,'OUTPUT_SIZE');
+flags.DEFINE_integer('INPUT_SIZE',12,'INPUT_SIZE');
+flags.DEFINE_integer('OUTPUT_SIZE',4,'OUTPUT_SIZE');
 flags.DEFINE_integer('HOW_MANY_MINUTES',1,'HOW_MANY_MINUTES');
 flags.DEFINE_string('INPUT_FOLDER','input','INPUT_FOLDER');
 
 
 flags.DEFINE_integer('npEpoch',200,'npEpoch');
 
-flags.DEFINE_integer('batchSize',128,'batchSize');
+flags.DEFINE_integer('batchSize',50,'batchSize');
 
-flags.DEFINE_float('valSplit',0.2,'valSplit');
+flags.DEFINE_float('valSplit',0.05,'valSplit');
 
 flags.DEFINE_string('outputDir','output','outputDir');
 

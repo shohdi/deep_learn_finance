@@ -135,7 +135,7 @@ class DeepInputRet :
         #inputImgs = self.convertInputImagesToTwoDim(inputImgs) * 255;
 
         inputImgs = self.drawInput.drawAllInputs(inputTuble,mainArr);
-        inputImgs = self.compressMyImage(inputImgs);
+        #inputImgs = self.compressMyImage(inputImgs);
 
         xTest,yTest,inputImgs,outputArr,outputFirst,outputSecond,inputTuble,outputTuble = self.getSplitResult(valSplit,inputImgs,inputTuble,outputTuble,average,outputArr,outputFirst,outputSecond);
 
