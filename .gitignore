@@ -1,6 +1,7 @@
 conv_4_layer/output/*
 
 last.1/output/*
+last.2/output/*
 
 **/*.pyc
 MNIST_data/*
