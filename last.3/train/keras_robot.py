@@ -147,17 +147,20 @@ def main(_):
 
     history = model.fit(train, y_, batch_size=FLAGS.batchSize, epochs=FLAGS.npEpoch, validation_data=(test, y_test));
     score = model.evaluate(test,y_test,verbose=1);
+    y_predicted = model.predict(test);
     print("Test score:",score[0]);
     print("Test accuracy:",score[1]);
     print(history.history.keys());
-    #plt.plot(history.history['acc']);
-    #plt.plot(history.history['val_acc']);
-    #plt.title('model accuracy');
-    #plt.ylabel('accuracy');
-    #plt.xlabel('epoch');
-    #plt.legend(['train','test'],loc='upper left');
+    plt.plot(y_test);
+    plt.plot(y_predicted);
+    
+    plt.title('real vs predicted');
+    plt.ylabel('price');
+    plt.xlabel('index');
+    plt.legend(['real','predicted'],loc='best');
     #plt.show();
-    #plt.savefig(os.path.join(outputDir,'acc.png'));
+    plt.savefig(os.path.join(FLAGS.outputDir,'acc.png'));
+    plt.gcf().clear();
     plt.plot(history.history['loss']);
     plt.plot(history.history['val_loss']);
     
