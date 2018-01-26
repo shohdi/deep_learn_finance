@@ -9,21 +9,45 @@ from train.deep_input_ret import DeepInputRet
 from train.keras_helper import KerasHelper
 
 from train.join_input import JoinInput
+from train.read_file import ReadFile
+from keras import backend as K
+from keras.models import Sequential
+from keras.layers.convolutional import Conv2D,Conv1D
+from keras.layers.convolutional import MaxPooling2D
+from keras.layers.pooling import GlobalMaxPooling1D
+from keras.layers.core import Activation
+from keras.layers.core import Flatten
+from keras.layers.core import Dense
+from keras.layers.core import Dropout
+from keras.datasets import mnist
+from keras.utils import np_utils
+from keras.optimizers import SGD,RMSprop,Adam
+from keras.layers.recurrent import LSTM
+from keras.losses import mean_squared_error
+import matplotlib
+matplotlib.use('Agg');
+import matplotlib.pyplot as plt
+from keras.callbacks import ModelCheckpoint
+import os as os
+import tensorflow as tf
 
 flags = tf.app.flags;
 FLAGS = flags.FLAGS;
-flags.DEFINE_string('shohdi_debug','False','shohdi_debug');
-flags.DEFINE_integer('INPUT_SIZE',12,'INPUT_SIZE');
-flags.DEFINE_integer('OUTPUT_SIZE',4,'OUTPUT_SIZE');
-flags.DEFINE_integer('HOW_MANY_MINUTES',1,'HOW_MANY_MINUTES');
+
+flags.DEFINE_integer('INPUT_SIZE',30,'INPUT_SIZE');
+flags.DEFINE_integer('OUTPUT_SIZE',1,'OUTPUT_SIZE');
+
 flags.DEFINE_string('INPUT_FOLDER','input','INPUT_FOLDER');
 
 
 flags.DEFINE_integer('npEpoch',200,'npEpoch');
+flags.DEFINE_integer('numberOfLayers',1,'npEpoch');
+flags.DEFINE_integer('hiddenCels',128,'npEpoch');
 
-flags.DEFINE_integer('batchSize',50,'batchSize');
 
-flags.DEFINE_float('valSplit',0.05,'valSplit');
+flags.DEFINE_integer('batchSize',60,'batchSize');
+
+flags.DEFINE_float('valSplit',0.2,'valSplit');
 
 flags.DEFINE_string('outputDir','output','outputDir');
 
@@ -32,6 +56,7 @@ flags.DEFINE_string('trainFiles','myOldData.csv','trainFiles');
 flags.DEFINE_string('testFiles','myOldData.csv','testFiles');
 
 flags.DEFINE_bool('isOperation',True,'isOperation');
+
 
 #1/1 - 1/50 - 1/100 - 1/500 - 1/1000
 
@@ -45,21 +70,88 @@ def main(_):
     print('train files ',trainFileNames);
     print('test files ',testFileNames);
 
-    
-    
-        
+    reader = ReadFile(trainFileNames);
 
-    inputClass = DeepInputRet(FLAGS.INPUT_SIZE,FLAGS.OUTPUT_SIZE,trainFileNames,FLAGS.HOW_MANY_MINUTES);
-    
-    xTrain,yTrain,xTest,yTest = inputClass.getAllResultsEqual(False,FLAGS.valSplit);
-    
+    arr = reader.readMultiFiles();
 
     
 
+    arr = np.array(arr);
+    arr = np.reshape(arr,(-1,6));
 
-    helper = KerasHelper();
+    arrLen = len(arr);
+    testLen = int(arrLen * FLAGS.valSplit);
+    testStart = arrLen - testLen;
 
-    helper.convNetTrain(xTrain,yTrain,xTest,yTest,FLAGS.npEpoch,FLAGS.batchSize,FLAGS.valSplit,FLAGS.outputDir,FLAGS.inputTrainData);
+    trainData = arr[0:testStart];
+    testData = arr[testStart:];
+
+    trainData = trainData[:,3];
+    testData = testData[:,3];
+
+    #print(testData.shape[0]);
+    length = len(trainData)  - (FLAGS.INPUT_SIZE + FLAGS.OUTPUT_SIZE);
+    inputSize = FLAGS.INPUT_SIZE;
+    outputSize = FLAGS.OUTPUT_SIZE;
+    train = list();
+    y_ = list();
+    testLength = len(testData) - (FLAGS.INPUT_SIZE + FLAGS.OUTPUT_SIZE);
+    test = list();
+    y_test = list();
+    for i in range(length):
+        if(i%100 == 0):
+            print(i);
+        train.append(   trainData[i: (i+inputSize)]);
+        y_.append(  trainData[(i+inputSize) : (i+inputSize+outputSize)]);
+        myMax = np.amax(train[i]);
+        myMin = np.amin(train[i]);
+        myMean = myMax - myMin;
+        train[i] = (train[i] - myMin)/myMean;
+        y_[i] = (y_[i] - myMin)/myMean;
+    
+    train = np.array(train);
+    y_ = np.array(y_);
+
+
+    for i in range(testLength):
+        if(i%100 == 0):
+            print(i);
+        test.append(   testData[i: (i+inputSize)]);
+        y_test.append(  testData[(i+inputSize) : (i+inputSize+outputSize)]);
+        myMax = np.amax(test[i]);
+        myMin = np.amin(test[i]);
+        myMean = myMax - myMin;
+        test[i] = (test[i] - myMin)/myMean;
+        y_test[i] = (y_test[i] - myMin)/myMean;
+    
+    test = np.array(test);
+    y_test = np.array(y_test);
+
+
+    print("train ",train[0],"result ",y_[0]);
+
+
+    #build model
+    model = Sequential()
+    model.add(LSTM(FLAGS.hiddenCels,input_shape=(inputSize,1) , dropout=0.2, recurrent_dropout=0.2))
+    for i in range(FLAGS.numberOfLayers-1):
+        model.add(LSTM(FLAGS.hiddenCels , dropout=0.2, recurrent_dropout=0.2))
+    model.add(Dense(1))
+    model.add(Activation("sigmoid"))
+
+    model.compile(loss="mean_squared_error", optimizer="adam",   metrics=["mean_squared_error"])
+
+    #train
+    train = train[:,:,np.newaxis];
+    test = test[:,:,np.newaxis];
+
+    history = model.fit(train, y_, batch_size=FLAGS.batchSize, epochs=FLAGS.npEpoch, validation_data=(test, y_test))
+
+    
+ 
+
+
+
     
    
     
