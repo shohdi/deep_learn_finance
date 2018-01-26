@@ -139,13 +139,18 @@ def main(_):
     model.add(Dense(1))
     model.add(Activation("sigmoid"))
 
+    model_file = os.path.join(FLAGS.outputDir,'lstm.h5');
+    model.save(model_file);
+
     model.compile(loss="mean_squared_error", optimizer="adam",   metrics=["mean_squared_error"])
+    filePath = os.path.join(FLAGS.outputDir,"my-model-{epoch:06d}.h5");
+    checkpoint = ModelCheckpoint(filepath=filePath,save_best_only=True);
 
     #train
     train = train[:,:,np.newaxis];
     test = test[:,:,np.newaxis];
 
-    history = model.fit(train, y_, batch_size=FLAGS.batchSize, epochs=FLAGS.npEpoch, validation_data=(test, y_test));
+    history = model.fit(train, y_, batch_size=FLAGS.batchSize, epochs=FLAGS.npEpoch, validation_data=(test, y_test),callbacks=[checkpoint]);
     score = model.evaluate(test,y_test,verbose=1);
     y_predicted = model.predict(test);
     print("Test score:",score[0]);
