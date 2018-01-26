@@ -40,7 +40,7 @@ flags.DEFINE_integer('OUTPUT_SIZE',1,'OUTPUT_SIZE');
 flags.DEFINE_string('INPUT_FOLDER','input','INPUT_FOLDER');
 
 
-flags.DEFINE_integer('npEpoch',200,'npEpoch');
+flags.DEFINE_integer('npEpoch',20,'npEpoch');
 flags.DEFINE_integer('numberOfLayers',1,'npEpoch');
 flags.DEFINE_integer('hiddenCels',128,'npEpoch');
 
@@ -145,7 +145,29 @@ def main(_):
     train = train[:,:,np.newaxis];
     test = test[:,:,np.newaxis];
 
-    history = model.fit(train, y_, batch_size=FLAGS.batchSize, epochs=FLAGS.npEpoch, validation_data=(test, y_test))
+    history = model.fit(train, y_, batch_size=FLAGS.batchSize, epochs=FLAGS.npEpoch, validation_data=(test, y_test));
+    score = model.evaluate(test,y_test,verbose=1);
+    print("Test score:",score[0]);
+    print("Test accuracy:",score[1]);
+    print(history.history.keys());
+    #plt.plot(history.history['acc']);
+    #plt.plot(history.history['val_acc']);
+    #plt.title('model accuracy');
+    #plt.ylabel('accuracy');
+    #plt.xlabel('epoch');
+    #plt.legend(['train','test'],loc='upper left');
+    #plt.show();
+    #plt.savefig(os.path.join(outputDir,'acc.png'));
+    plt.plot(history.history['loss']);
+    plt.plot(history.history['val_loss']);
+    
+    plt.title('model loss');
+    plt.ylabel('loss');
+    plt.xlabel('epoch');
+    plt.legend(['train','test'],loc='upper left');
+    #plt.show();
+    plt.savefig(os.path.join(FLAGS.outputDir,'loss.png'));
+
 
     
  
