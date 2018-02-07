@@ -18,7 +18,7 @@ from keras.layers.pooling import GlobalMaxPooling1D
 from keras.layers.core import Activation
 from keras.layers.core import Flatten
 from keras.layers.core import Dense
-from keras.layers.core import Dropout
+from keras.layers.core import Dropout,RepeatVector
 from keras.datasets import mnist
 from keras.utils import np_utils
 from keras.optimizers import SGD,RMSprop,Adam
@@ -40,8 +40,8 @@ flags.DEFINE_integer('OUTPUT_SIZE',1,'OUTPUT_SIZE');
 flags.DEFINE_string('INPUT_FOLDER','input','INPUT_FOLDER');
 
 
-flags.DEFINE_integer('npEpoch',200,'npEpoch');
-flags.DEFINE_integer('numberOfLayers',1,'npEpoch');
+flags.DEFINE_integer('npEpoch',20,'npEpoch');
+flags.DEFINE_integer('numberOfLayers',4,'npEpoch');
 flags.DEFINE_integer('hiddenCels',128,'npEpoch');
 
 
@@ -86,8 +86,10 @@ def main(_):
     trainData = arr[0:testStart];
     testData = arr[testStart:];
 
-    trainData = trainData[:,3];
-    testData = testData[:,3];
+    trainData = trainData[:,2:];
+    #trainData = trainData.reshape((-1,1));
+    testData = testData[:,2:];
+    #testData = testData.reshape((-1,1));
 
     #print(testData.shape[0]);
     length = len(trainData)  - (FLAGS.INPUT_SIZE + FLAGS.OUTPUT_SIZE);
@@ -110,7 +112,13 @@ def main(_):
         y_[i] = (y_[i] - myMin)/myMean;
     
     train = np.array(train);
-    y_ = np.array(y_);
+    y_ =  np.array(y_);
+    print(np.shape(y_));
+    y_ = y_[:,:,1];
+    print(np.shape(y_));
+    print(np.shape(train));
+    train = np.reshape(train,(-1,inputSize*4));
+    print(np.shape(train));
 
 
     for i in range(testLength):
@@ -126,6 +134,13 @@ def main(_):
     
     test = np.array(test);
     y_test = np.array(y_test);
+    print(np.shape(y_test));
+    y_test = y_test[:,:,1];
+    print(np.shape(y_test));
+    print(np.shape(test));
+
+    test = np.reshape(test,(-1,inputSize*4));
+    print(np.shape(test));
 
 
     print("train ",train[0],"result ",y_[0]);
@@ -133,19 +148,50 @@ def main(_):
 
     #build model
     model = Sequential()
-    model.add(LSTM(FLAGS.hiddenCels,input_shape=(inputSize,1) , dropout=0.2, recurrent_dropout=0.2))
+    model.add(LSTM(FLAGS.hiddenCels,input_shape=(inputSize*4,1) , dropout=0.2, recurrent_dropout=0.2))
     for i in range(FLAGS.numberOfLayers-1):
+        model.add(RepeatVector(1));
         model.add(LSTM(FLAGS.hiddenCels , dropout=0.2, recurrent_dropout=0.2))
     model.add(Dense(1))
     model.add(Activation("sigmoid"))
 
+    model_file = os.path.join(FLAGS.outputDir,'lstm.h5');
+    model.save(model_file);
+
     model.compile(loss="mean_squared_error", optimizer="adam",   metrics=["mean_squared_error"])
+    filePath = os.path.join(FLAGS.outputDir,"my-model-{epoch:06d}.h5");
+    checkpoint = ModelCheckpoint(filepath=filePath,save_best_only=True);
 
     #train
     train = train[:,:,np.newaxis];
     test = test[:,:,np.newaxis];
 
-    history = model.fit(train, y_, batch_size=FLAGS.batchSize, epochs=FLAGS.npEpoch, validation_data=(test, y_test))
+    history = model.fit(train, y_, batch_size=FLAGS.batchSize, epochs=FLAGS.npEpoch, validation_data=(test, y_test),callbacks=[checkpoint]);
+    score = model.evaluate(test,y_test,verbose=1);
+    y_predicted = model.predict(test);
+    print("Test score:",score[0]);
+    print("Test accuracy:",score[1]);
+    print(history.history.keys());
+    plt.plot(y_test);
+    plt.plot(y_predicted);
+    
+    plt.title('real vs predicted');
+    plt.ylabel('price');
+    plt.xlabel('index');
+    plt.legend(['real','predicted'],loc='best');
+    #plt.show();
+    plt.savefig(os.path.join(FLAGS.outputDir,'acc.png'));
+    plt.gcf().clear();
+    plt.plot(history.history['loss']);
+    plt.plot(history.history['val_loss']);
+    
+    plt.title('model loss');
+    plt.ylabel('loss');
+    plt.xlabel('epoch');
+    plt.legend(['train','test'],loc='upper left');
+    #plt.show();
+    plt.savefig(os.path.join(FLAGS.outputDir,'loss.png'));
+
 
     
  
