@@ -105,6 +105,7 @@ def main(_):
             print(i);
         train.append(   trainData[i: (i+inputSize)]);
         y_.append(  trainData[(i+inputSize) : (i+inputSize+outputSize)]);
+        
         myMax = np.amax(train[i]);
         myMin = np.amin(train[i]);
         myMean = myMax - myMin;
