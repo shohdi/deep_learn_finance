@@ -1,1 +1,7 @@
 source ../../tensorflow/bin/activate
+
+
+
+cache git
+
+git config --global credential.helper "cache --timeout=360000"
