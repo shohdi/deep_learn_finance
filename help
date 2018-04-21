@@ -5,3 +5,7 @@ source ../../tensorflow/bin/activate
 cache git
 
 git config --global credential.helper "cache --timeout=360000"
+
+
+to unset
+git config --global --unset credential.helper
