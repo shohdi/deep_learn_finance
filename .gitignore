@@ -8,3 +8,5 @@ last.3/output/*
 MNIST_data/*
 **/trainData.csv
 
+reinforcement_learn/data/rl-network.h5
+reinforcement_learn/data/rl-network-results.tsv
