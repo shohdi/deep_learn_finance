@@ -70,7 +70,7 @@ class MyWrappedGame(object):
         
         self.screen.fill(self.COLOR_BLACK);
         score_text = self.font.render("Score: {:d}/{:d}, Ball: {:d}".format(self.game_score,self.MAX_TRIES_PER_GAME,self.num_tries),True,self.COLOR_WHITE);
-        self.screen.blit(score_text,((self.GAME_WIDTH - score_text.get_width())//2,(self.GAME_FLOOR + self.FONT_SIZE)//2));
+        self.screen.blit(score_text,((self.GAME_WIDTH - score_text.get_width()),(self.GAME_FLOOR + self.FONT_SIZE//2)));
         #update ball position
         self.ball_y += self.BALL_VELOCITY;
         ball = pygame.draw.rect(self.screen,self.COLOR_WHITE,pygame.Rect(self.ball_x,self.ball_y,self.BALL_WIDTH,self.BALL_HEIGHT));
