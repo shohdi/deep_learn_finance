@@ -9,17 +9,18 @@ from train.deep_input_ret import DeepInputRet
 from train.keras_helper import KerasHelper
 
 from train.join_input import JoinInput
+from train.read_file import ReadFile
 
 flags = tf.app.flags;
 FLAGS = flags.FLAGS;
 flags.DEFINE_string('shohdi_debug','False','shohdi_debug');
-flags.DEFINE_integer('INPUT_SIZE',12,'INPUT_SIZE');
-flags.DEFINE_integer('OUTPUT_SIZE',4,'OUTPUT_SIZE');
-flags.DEFINE_integer('HOW_MANY_MINUTES',1,'HOW_MANY_MINUTES');
+flags.DEFINE_integer('INPUT_SIZE',2400,'INPUT_SIZE');
+flags.DEFINE_integer('OUTPUT_SIZE',80,'OUTPUT_SIZE');
+flags.DEFINE_integer('HOW_MANY_MINUTES',80,'HOW_MANY_MINUTES');
 flags.DEFINE_string('INPUT_FOLDER','input','INPUT_FOLDER');
 
 
-flags.DEFINE_integer('npEpoch',200,'npEpoch');
+flags.DEFINE_integer('npEpoch',20,'npEpoch');
 
 flags.DEFINE_integer('batchSize',50,'batchSize');
 
@@ -28,8 +29,8 @@ flags.DEFINE_float('valSplit',0.05,'valSplit');
 flags.DEFINE_string('outputDir','output','outputDir');
 
 flags.DEFINE_string('inputTrainData','','inputTrainData');
-flags.DEFINE_string('trainFiles','myOldData.csv','trainFiles');
-flags.DEFINE_string('testFiles','myOldData.csv','testFiles');
+flags.DEFINE_string('trainFiles','15_year.csv','trainFiles');
+flags.DEFINE_string('testFiles','last_year.csv','testFiles');
 
 flags.DEFINE_bool('isOperation',True,'isOperation');
 
@@ -38,14 +39,21 @@ flags.DEFINE_bool('isOperation',True,'isOperation');
 
 def main(_):
     
-    joinFilesClass = JoinInput();
-    trainFileNames = joinFilesClass.joinInput(FLAGS.INPUT_FOLDER,FLAGS.trainFiles);
-    testFileNames = joinFilesClass.joinInput(FLAGS.INPUT_FOLDER,FLAGS.testFiles);
+    joinInput = JoinInput();
+    trainFileNames = joinInput.joinInput(FLAGS.INPUT_FOLDER,FLAGS.trainFiles);
+    testFileNames = joinInput.joinInput(FLAGS.INPUT_FOLDER,FLAGS.testFiles);
 
-    print('train files ',trainFileNames);
-    print('test files ',testFileNames);
 
-    
+    readFile = ReadFile();
+    trainArr = readFile.readMultiFiles(trainFileNames);
+    testArr = readFile.readMultiFiles(testFileNames);
+
+    print(trainArr[0:100]);
+    print(testArr[0:100]);
+
+
+
+    return ;
     
         
 

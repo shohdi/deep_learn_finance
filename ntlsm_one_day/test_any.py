@@ -38,12 +38,14 @@ flags.DEFINE_bool('isOperation',True,'isOperation');
 
 def main(_):
     
-    joinFilesClass = JoinInput();
-    trainFileNames = joinFilesClass.joinInput(FLAGS.INPUT_FOLDER,FLAGS.trainFiles);
-    testFileNames = joinFilesClass.joinInput(FLAGS.INPUT_FOLDER,FLAGS.testFiles);
+    joinInput = JoinInput();
+    trainFileNames = joinInput.joinInput(FLAGS.INPUT_FOLDER,FLAGS.trainFiles);
+    testFileNames = joinInput.joinInput(FLAGS.INPUT_FOLDER,FLAGS.testFiles);
 
     print('train files ',trainFileNames);
     print('test files ',testFileNames);
+
+    
 
     
     
