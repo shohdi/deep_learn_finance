@@ -13,8 +13,8 @@ from train.read_file import ReadFile
 flags = tf.app.flags;
 FLAGS = flags.FLAGS;
 flags.DEFINE_string('shohdi_debug','False','shohdi_debug');
-flags.DEFINE_integer('INPUT_SIZE',2880,'INPUT_SIZE');
-flags.DEFINE_integer('OUTPUT_SIZE',96,'OUTPUT_SIZE');
+flags.DEFINE_integer('INPUT_SIZE',2880 ,'INPUT_SIZE');
+flags.DEFINE_integer('OUTPUT_SIZE',96 ,'OUTPUT_SIZE');
 flags.DEFINE_integer('HOW_MANY_MINUTES',1,'HOW_MANY_MINUTES');
 flags.DEFINE_string('INPUT_FOLDER','input','INPUT_FOLDER');
 
