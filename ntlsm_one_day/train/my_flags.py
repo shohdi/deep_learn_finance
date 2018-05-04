@@ -34,6 +34,7 @@ flags.DEFINE_string('trainFiles','last_year.csv','trainFiles');
 flags.DEFINE_string('testFiles','last_year.csv','testFiles');
 
 flags.DEFINE_bool('isOperation',True,'isOperation');
+flags.DEFINE_bool('candleSize',6,'candleSize');
 
 
 
@@ -52,3 +53,4 @@ class MyFlags:
         self.trainFiles = FLAGS.trainFiles;
         self.testFiles = FLAGS.testFiles;
         self.isOperation = FLAGS.isOperation;
+        self.candleSize = FLAGS.candleSize;
