@@ -20,6 +20,7 @@ class OneInOutPrep:
 
     def fixOneInputOutput(self,mainArr,index):
         oneArr = self.getInOut(mainArr,index);
+        return oneArr;
     
 
 
@@ -33,6 +34,6 @@ class OneInOutPrep:
         end = self.getEnd(index) ;
         ret = mainArr[start:end];
         ret = ret.copy();
-        ret.reshape((-1,self.myFlags.candleSize));
+        ret = ret.reshape((-1,self.myFlags.candleSize));
 
         return ret;
