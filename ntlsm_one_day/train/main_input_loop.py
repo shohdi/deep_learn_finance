@@ -24,13 +24,13 @@ class MainInputLoop:
         fileNames = self.joinInput.joinInput(self.myFlags.INPUT_FOLDER,files);
                
         arr = np.array( self.readFile.readMultiFiles(fileNames));
-        size = int( len(arr)/self.myFlags.candleSize);
+        size = int( len(arr)//self.myFlags.candleSize);
         for i in range(size- (self.myFlags.INPUT_SIZE + self.myFlags.OUTPUT_SIZE)):
             index = i * self.myFlags.candleSize;
 
-            oneInOut = self.oneInOutPrep.fixOneInputOutput(arr,index);
+            oneX,oneY = self.oneInOutPrep.fixOneInputOutput(arr,index);
             if(i % 100):
-                print(oneInOut.shape);
+                print(oneX.shape);
 
 
 

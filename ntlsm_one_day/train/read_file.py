@@ -13,7 +13,8 @@ class ReadFile:
         ret = list()
         files = file_path.split(";")
         for i in range(len(files)):
-            arr = self.read_file(files[i])
+            filePath = files[i];
+            arr = self.read_file(filePath)
             ret.extend(arr)
         
 

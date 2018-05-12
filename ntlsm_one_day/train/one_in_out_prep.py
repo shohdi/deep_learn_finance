@@ -17,10 +17,27 @@ class OneInOutPrep:
         self.myFlags = MyFlags();
         self.normalizeInput = NormalizeInput();
     
+    def fixArrayWithMean(self,arr,high,low):
+        arr = (arr - low)/(high - low);
+        arr = arr.astype('float32');
+        return arr;
 
     def fixOneInputOutput(self,mainArr,index):
         oneArr = self.getInOut(mainArr,index);
-        return oneArr;
+        inputArr = oneArr[:self.myFlags.INPUT_SIZE];
+        outputArr = oneArr[self.myFlags.INPUT_SIZE:self.myFlags.INPUT_SIZE + self.myFlags.OUTPUT_SIZE];
+        inputArr = inputArr[:,3:];
+        outputArr = outputArr[:,3:];
+        close,high,low = self.normalizeInput.getHighLowClose(inputArr);
+        if(high == 0):
+            high = 0.0001;
+        inputArr = self.fixArrayWithMean(inputArr,high,low);
+        
+        outputArr =  self.fixArrayWithMean(outputArr,high,low);
+
+        result = outputArr[len(outputArr)-1][0];
+
+        return inputArr,result;
     
 
 
