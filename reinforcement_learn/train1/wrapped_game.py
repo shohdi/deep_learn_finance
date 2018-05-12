@@ -10,7 +10,7 @@ class MyWrappedGame(object):
     
     def __init__(self):
         # run pygame in headless mode
-#        os.environ["SDL_VIDEODRIVER"] = "dummy"
+        #os.environ["SDL_VIDEODRIVER"] = "dummy"
         
         pygame.init()
         pygame.key.set_repeat(10, 100)

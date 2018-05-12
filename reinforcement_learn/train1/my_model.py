@@ -16,7 +16,7 @@ def preprocess_images(images):
         # single image
         x_t = images[0]
         x_t = imresize(x_t, (80, 80))
-        x_t = x_t.astype("float")
+        x_t = x_t.astype("float32")
         x_t /= 255.0
         s_t = np.stack((x_t, x_t, x_t, x_t), axis=2)
     else:
@@ -24,7 +24,7 @@ def preprocess_images(images):
         xt_list = []
         for i in range(images.shape[0]):
             x_t = imresize(images[i], (80, 80))
-            x_t = x_t.astype("float")
+            x_t = x_t.astype("float32")
             x_t /= 255.0
             xt_list.append(x_t)
         s_t = np.stack((xt_list[0], xt_list[1], xt_list[2], xt_list[3]), 
