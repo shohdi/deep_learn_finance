@@ -14,4 +14,6 @@ class ProgramClass:
     
 
     def run(self,args):
-        self.mainInputLoop.normalizeInput(self.myFlags.trainFiles);
+        x,y = self.mainInputLoop.normalizeInput(self.myFlags.trainFiles);
+        xTest,yTest =  self.mainInputLoop.normalizeInput(self.myFlags.testFiles);
+        

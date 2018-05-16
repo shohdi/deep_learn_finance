@@ -1,5 +1,3 @@
-
-
 import tensorflow as tf
 from train.program_class import ProgramClass
 

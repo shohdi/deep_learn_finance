@@ -22,16 +22,25 @@ class OneInOutPrep:
         arr = arr.astype('float32');
         return arr;
 
-    def fixOneInputOutput(self,mainArr,index):
-        oneArr = self.getInOut(mainArr,index);
-        inputArr = oneArr[:self.myFlags.INPUT_SIZE];
-        outputArr = oneArr[self.myFlags.INPUT_SIZE:self.myFlags.INPUT_SIZE + self.myFlags.OUTPUT_SIZE];
+    def fixInput(self,inputArr):
         inputArr = inputArr[:,3:];
-        outputArr = outputArr[:,3:];
         close,high,low = self.normalizeInput.getHighLowClose(inputArr);
         if(high == 0):
             high = 0.0001;
         inputArr = self.fixArrayWithMean(inputArr,high,low);
+        return inputArr , high,low;
+
+
+
+
+    def fixOneInputOutput(self,mainArr,index):
+        oneArr = self.getInOut(mainArr,index);
+        inputArr = oneArr[:self.myFlags.INPUT_SIZE];
+        outputArr = oneArr[self.myFlags.INPUT_SIZE:self.myFlags.INPUT_SIZE + self.myFlags.OUTPUT_SIZE];
+        inputArr,high,low = self.fixInput(inputArr);
+        outputArr = outputArr[:,3:];
+        
+        
         
         outputArr =  self.fixArrayWithMean(outputArr,high,low);
 
