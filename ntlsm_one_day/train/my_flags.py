@@ -21,9 +21,9 @@ flags.DEFINE_string('INPUT_FOLDER','input','INPUT_FOLDER');
 
 flags.DEFINE_integer('npEpoch',5,'npEpoch');
 
-flags.DEFINE_integer('batchSize',50,'batchSize');
+flags.DEFINE_integer('batchSize',128,'batchSize');
 
-flags.DEFINE_float('valSplit',0.05,'valSplit');
+flags.DEFINE_float('valSplit',0.2,'valSplit');
 
 flags.DEFINE_string('outputDir','output','outputDir');
 
@@ -35,6 +35,8 @@ flags.DEFINE_string('testFiles','last_year.csv','testFiles');
 
 flags.DEFINE_bool('isOperation',True,'isOperation');
 flags.DEFINE_integer('candleSize',6,'candleSize');
+flags.DEFINE_integer('hiddenUnits',128,'hiddenUnits');
+flags.DEFINE_integer('hiddenLayers',1,'hiddenLayers');
 
 
 
@@ -54,3 +56,5 @@ class MyFlags:
         self.testFiles = FLAGS.testFiles;
         self.isOperation = FLAGS.isOperation;
         self.candleSize = FLAGS.candleSize;
+        self.hiddenUnits = FLAGS.hiddenUnits;
+        self.hiddenLayers = FLAGS.hiddenLayers;
