@@ -19,7 +19,7 @@ flags.DEFINE_integer('HOW_MANY_MINUTES',1,'HOW_MANY_MINUTES');
 flags.DEFINE_string('INPUT_FOLDER','input','INPUT_FOLDER');
 
 
-flags.DEFINE_integer('npEpoch',5,'npEpoch');
+flags.DEFINE_integer('npEpoch',20,'npEpoch');
 
 flags.DEFINE_integer('batchSize',128,'batchSize');
 
@@ -28,8 +28,8 @@ flags.DEFINE_float('valSplit',0.2,'valSplit');
 flags.DEFINE_string('outputDir','output','outputDir');
 
 flags.DEFINE_string('inputTrainData','','inputTrainData');
-#flags.DEFINE_string('trainFiles','15_year.csv','trainFiles');
-flags.DEFINE_string('trainFiles','last_year.csv','trainFiles');
+flags.DEFINE_string('trainFiles','15_year.csv','trainFiles');
+#flags.DEFINE_string('trainFiles','last_year.csv','trainFiles');
 
 flags.DEFINE_string('testFiles','last_year.csv','testFiles');
 
