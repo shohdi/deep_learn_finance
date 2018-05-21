@@ -17,6 +17,7 @@ from keras.datasets import mnist
 from keras.utils import np_utils
 from keras.optimizers import SGD,RMSprop,Adam
 from keras.layers.recurrent import LSTM
+from keras.layers.cudnn_recurrent import CuDNNLSTM
 from keras.losses import mean_squared_error
 import matplotlib
 matplotlib.use('Agg');
@@ -32,10 +33,10 @@ class KerasModel:
 
     def buildModel(self):
         model = Sequential()
-        model.add(LSTM(self.myFlags.hiddenUnits,input_shape=(self.myFlags.INPUT_SIZE,3) , dropout=0.2, recurrent_dropout=0.2))
+        model.add(CuDNNLSTM(self.myFlags.hiddenUnits,input_shape=(self.myFlags.INPUT_SIZE,3) ))#, dropout=0.2, recurrent_dropout=0.2))
         for i in range(self.myFlags.hiddenLayers-1):
             model.add(RepeatVector(1));
-            model.add(LSTM(self.myFlags.hiddenUnits , dropout=0.2, recurrent_dropout=0.2))
+            model.add(CuDNNLSTM(self.myFlags.hiddenUnits ))#, dropout=0.2, recurrent_dropout=0.2))
         model.add(Dense(1))
         model.add(Activation("sigmoid"))
         return model;
@@ -63,7 +64,7 @@ class KerasModel:
         plt.xlabel('epoch');
         plt.legend(['train','test'],loc='upper left');
         #plt.show();
-        plt.savefig(os.path.join(FLAGS.outputDir,'loss.png'));
+        plt.savefig(os.path.join(self.myFlags.outputDir,'loss.png'));
 
 
 

@@ -25,20 +25,22 @@ class MainInputLoop:
                
         arr = np.array( self.readFile.readMultiFiles(fileNames));
         size = int( len(arr)//self.myFlags.candleSize);
-        X = [];
-        Y =[];
-        for i in range(size- (self.myFlags.INPUT_SIZE + self.myFlags.OUTPUT_SIZE)):
+        samplesSize = size- (self.myFlags.INPUT_SIZE + self.myFlags.OUTPUT_SIZE);
+        X = np.zeros((samplesSize,self.myFlags.INPUT_SIZE,3),dtype='float32');
+        Y = np.zeros((samplesSize,1),dtype='float32');
+        for i in range(samplesSize):
             index = i * self.myFlags.candleSize;
 
             oneX,oneY = self.oneInOutPrep.fixOneInputOutput(arr,index);
-            X.append(oneX);
-            Y.append([oneY]);
+            oneX = np.array(oneX,dtype='float32');
+            X[i] = oneX;
+            oneY = np.array([oneY],dtype='float32');
+            Y[i] = oneY;
             if(i % 1000 == 0):
                 print ('input number : %d , output %f' % (i,oneY));
             
 
-        X = np.array(X);
-        Y = np.array(Y);
+        
 
         print ('x shape %s , y shape %s' % (X.shape,Y.shape));
         return X,Y ;
