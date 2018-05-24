@@ -13,10 +13,12 @@ from keras.layers.core import Activation
 from keras.layers.core import Flatten
 from keras.layers.core import Dense
 from keras.layers.core import Dropout
+from keras.layers.core import RepeatVector
 from keras.datasets import mnist
 from keras.utils import np_utils
 from keras.optimizers import SGD,RMSprop,Adam
 from keras.layers.recurrent import LSTM
+from keras.layers import ConvLSTM2D
 from keras.layers.cudnn_recurrent import CuDNNLSTM
 from keras.losses import mean_squared_error
 import matplotlib
@@ -32,8 +34,10 @@ class KerasModel:
     
 
     def buildModel(self):
+        shape = (self.myFlags.noOfShots+1,(self.myFlags.INPUT_SIZE - self.myFlags.noOfShots)*3);
+        print ('print model input shape : ',shape);
         model = Sequential()
-        model.add(CuDNNLSTM(self.myFlags.hiddenUnits,input_shape=(self.myFlags.INPUT_SIZE,3) ))#, dropout=0.2, recurrent_dropout=0.2))
+        model.add(CuDNNLSTM(self.myFlags.hiddenUnits,input_shape=shape  ))#, dropout=0.2, recurrent_dropout=0.2))
         for i in range(self.myFlags.hiddenLayers-1):
             model.add(RepeatVector(1));
             model.add(CuDNNLSTM(self.myFlags.hiddenUnits ))#, dropout=0.2, recurrent_dropout=0.2))
@@ -45,7 +49,9 @@ class KerasModel:
 
 
     def trainModel(self,model,x,y,xVal,yVal,xTest,yTest):
-        model.compile(loss="mean_squared_error", optimizer="adam",   metrics=["mae"]);
+        
+        #model.compile(loss="mean_squared_error", optimizer="RMSprop",   metrics=["mae"]);
+        model.compile(loss="binary_crossentropy", optimizer="RMSprop",   metrics=["acc"]);
         filePath = os.path.join(self.myFlags.outputDir,"my-model-{epoch:06d}.h5");
         checkpoint = ModelCheckpoint(filepath=filePath,save_best_only=True);
         history = model.fit(x, y, batch_size=self.myFlags.batchSize, epochs=self.myFlags.npEpoch, validation_data=(xVal, yVal),callbacks=[checkpoint]);

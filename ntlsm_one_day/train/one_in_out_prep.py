@@ -23,12 +23,18 @@ class OneInOutPrep:
         return arr;
 
     def fixInput(self,inputArr):
+        noOfShots = self.myFlags.noOfShots;
         inputArr = inputArr[:,3:];
         close,high,low = self.normalizeInput.getHighLowClose(inputArr);
         if(high == 0):
             high = 0.0001;
         inputArr = self.fixArrayWithMean(inputArr,high,low);
-        return inputArr , high,low;
+        inputArr = np.array(inputArr,dtype='float32');
+        oneShot = self.myFlags.INPUT_SIZE - noOfShots ;
+        ret = np.zeros((noOfShots+1,oneShot,3),dtype='float32');
+        for i in range(noOfShots+1):
+            ret[i] = inputArr[i:(i+oneShot)]
+        return ret , high,low;
 
 
 
@@ -44,9 +50,16 @@ class OneInOutPrep:
         
         outputArr =  self.fixArrayWithMean(outputArr,high,low);
 
-        result = outputArr[len(outputArr)-1][0];
+        resultClose = outputArr[len(outputArr)-1][0];
+        result = np.zeros((1,),dtype='float32');
+        oneShot = self.myFlags.INPUT_SIZE - self.myFlags.noOfShots;
+        close = inputArr[self.myFlags.noOfShots,oneShot-1,0];
+        if(resultClose > close):
+            result[0] = 1.0;
+        else:
+            result[0] = 0.0;
 
-        return inputArr,result;
+        return inputArr,result[0];
     
 
 

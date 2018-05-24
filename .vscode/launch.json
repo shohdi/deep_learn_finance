@@ -12,7 +12,7 @@
             "stopOnEntry": true,
             "pythonPath": "${config:python.pythonPath}",
             "program": "${file}",
-            "cwd": "${workspaceRoot}",
+            "cwd": "${workspaceRoot}/ntlsm_one_day",
             "env": {},
             "envFile": "${workspaceRoot}/.env",
             "debugOptions": [

@@ -26,7 +26,7 @@ class MainInputLoop:
         arr = np.array( self.readFile.readMultiFiles(fileNames));
         size = int( len(arr)//self.myFlags.candleSize);
         samplesSize = size- (self.myFlags.INPUT_SIZE + self.myFlags.OUTPUT_SIZE);
-        X = np.zeros((samplesSize,self.myFlags.INPUT_SIZE,3),dtype='float32');
+        X = np.zeros((samplesSize,self.myFlags.noOfShots+1,self.myFlags.INPUT_SIZE - self.myFlags.noOfShots,3),dtype='float32');
         Y = np.zeros((samplesSize,1),dtype='float32');
         for i in range(samplesSize):
             index = i * self.myFlags.candleSize;
@@ -43,6 +43,8 @@ class MainInputLoop:
         
 
         print ('x shape %s , y shape %s' % (X.shape,Y.shape));
+        print ('first x ',X[0]);
+        print ('first x shape ',X[0].shape);
         return X,Y ;
 
 
