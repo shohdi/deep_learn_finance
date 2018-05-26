@@ -29,8 +29,8 @@ flags.DEFINE_float('testSplit',0.1,'testSplit');
 flags.DEFINE_string('outputDir','output','outputDir');
 
 flags.DEFINE_string('inputTrainData','','inputTrainData');
-#flags.DEFINE_string('trainFiles','15_year.csv','trainFiles');
-flags.DEFINE_string('trainFiles','last_year.csv','trainFiles');
+flags.DEFINE_string('trainFiles','15_year.csv','trainFiles');
+#flags.DEFINE_string('trainFiles','last_year.csv','trainFiles');
 
 flags.DEFINE_string('testFiles','last_year.csv','testFiles');
 
@@ -38,7 +38,7 @@ flags.DEFINE_bool('isOperation',True,'isOperation');
 flags.DEFINE_integer('candleSize',6,'candleSize');
 flags.DEFINE_integer('hiddenUnits',128,'hiddenUnits');
 flags.DEFINE_integer('hiddenLayers',1,'hiddenLayers');
-flags.DEFINE_integer('noOfShots',1,'noOfShots');
+flags.DEFINE_integer('noOfShots',0,'noOfShots');
 
 
 class MyFlags:
