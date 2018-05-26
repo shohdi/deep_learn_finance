@@ -34,7 +34,10 @@ class KerasModel:
     
 
     def buildModel(self):
-        shape = (self.myFlags.noOfShots+1,(self.myFlags.INPUT_SIZE - self.myFlags.noOfShots)*3);
+        shape = (self.myFlags.INPUT_SIZE,3);
+        if(self.myFlags.noOfShots > 1):
+            shape = (self.myFlags.noOfShots+1,(self.myFlags.INPUT_SIZE - self.myFlags.noOfShots)*3);
+        
         print ('print model input shape : ',shape);
         model = Sequential()
         model.add(CuDNNLSTM(self.myFlags.hiddenUnits,input_shape=shape  ))#, dropout=0.2, recurrent_dropout=0.2))

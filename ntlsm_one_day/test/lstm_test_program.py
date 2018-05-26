@@ -17,7 +17,7 @@ class LstmTestProgram:
     
 
     def run(self,args):
-        x,y = self.mainInputLoop.normalizeInput(self.myFlags.trainFiles);
+        x,y = self.mainInputLoop.normalizeInputShots(self.myFlags.trainFiles);
         #xTest,yTest =  self.mainInputLoop.normalizeInput(self.myFlags.testFiles);
         
         valPerc = self.myFlags.valSplit;

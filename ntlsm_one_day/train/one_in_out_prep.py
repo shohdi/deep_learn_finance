@@ -22,7 +22,7 @@ class OneInOutPrep:
         arr = arr.astype('float32');
         return arr;
 
-    def fixInput(self,inputArr):
+    def fixInputShots(self,inputArr):
         noOfShots = self.myFlags.noOfShots;
         inputArr = inputArr[:,3:];
         close,high,low = self.normalizeInput.getHighLowClose(inputArr);
@@ -36,8 +36,44 @@ class OneInOutPrep:
             ret[i] = inputArr[i:(i+oneShot)]
         return ret , high,low;
 
+    def fixInput(self,inputArr):
+        
+        inputArr = inputArr[:,3:];
+        close,high,low = self.normalizeInput.getHighLowClose(inputArr);
+        if(high == 0):
+            high = 0.0001;
+        inputArr = self.fixArrayWithMean(inputArr,high,low);
+        inputArr = np.array(inputArr,dtype='float32');
+        
+        
+        
+        return inputArr , high,low;
 
 
+
+
+
+    def fixOneInputOutputShots(self,mainArr,index):
+        oneArr = self.getInOut(mainArr,index);
+        inputArr = oneArr[:self.myFlags.INPUT_SIZE];
+        outputArr = oneArr[self.myFlags.INPUT_SIZE:self.myFlags.INPUT_SIZE + self.myFlags.OUTPUT_SIZE];
+        inputArr,high,low = self.fixInputShots(inputArr);
+        outputArr = outputArr[:,3:];
+        
+        
+        
+        outputArr =  self.fixArrayWithMean(outputArr,high,low);
+
+        resultClose = outputArr[len(outputArr)-1][0];
+        result = np.zeros((1,),dtype='float32');
+        oneShot = self.myFlags.INPUT_SIZE - self.myFlags.noOfShots;
+        close = inputArr[self.myFlags.noOfShots,oneShot-1,0];
+        if(resultClose > close):
+            result[0] = 1.0;
+        else:
+            result[0] = 0.0;
+
+        return inputArr,result[0];
 
     def fixOneInputOutput(self,mainArr,index):
         oneArr = self.getInOut(mainArr,index);
@@ -52,8 +88,8 @@ class OneInOutPrep:
 
         resultClose = outputArr[len(outputArr)-1][0];
         result = np.zeros((1,),dtype='float32');
-        oneShot = self.myFlags.INPUT_SIZE - self.myFlags.noOfShots;
-        close = inputArr[self.myFlags.noOfShots,oneShot-1,0];
+        
+        close = inputArr[self.myFlags.INPUT_SIZE-1,0];
         if(resultClose > close):
             result[0] = 1.0;
         else:
