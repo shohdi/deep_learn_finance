@@ -44,8 +44,10 @@ class KerasModel:
         for i in range(self.myFlags.hiddenLayers-1):
             model.add(RepeatVector(1));
             model.add(CuDNNLSTM(self.myFlags.hiddenUnits ))#, dropout=0.2, recurrent_dropout=0.2))
+        
         model.add(Dropout(0.2));
         model.add(Dense(1))
+
         model.add(Activation("sigmoid"))
         return model;
     

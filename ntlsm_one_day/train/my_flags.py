@@ -13,9 +13,9 @@ from train.read_file import ReadFile
 flags = tf.app.flags;
 FLAGS = flags.FLAGS;
 flags.DEFINE_string('shohdi_debug','False','shohdi_debug');
-flags.DEFINE_integer('INPUT_SIZE',32 ,'INPUT_SIZE');
-flags.DEFINE_integer('OUTPUT_SIZE',1 ,'OUTPUT_SIZE');
-flags.DEFINE_integer('HOW_MANY_MINUTES',1,'HOW_MANY_MINUTES');
+flags.DEFINE_integer('INPUT_SIZE',1536 ,'INPUT_SIZE');
+flags.DEFINE_integer('OUTPUT_SIZE',96,'OUTPUT_SIZE');
+flags.DEFINE_integer('HOW_MANY_MINUTES',96,'HOW_MANY_MINUTES');
 flags.DEFINE_string('INPUT_FOLDER','input','INPUT_FOLDER');
 
 
@@ -33,6 +33,9 @@ flags.DEFINE_string('trainFiles','15_year.csv','trainFiles');
 #flags.DEFINE_string('trainFiles','last_year.csv','trainFiles');
 
 flags.DEFINE_string('testFiles','last_year.csv','testFiles');
+
+#flags.DEFINE_string('trainFiles','trainYear1.csv;trainYear2.csv;trainYear3.csv','trainFiles');
+#flags.DEFINE_string('testFiles','testYear.csv','testFiles');
 
 flags.DEFINE_bool('isOperation',True,'isOperation');
 flags.DEFINE_integer('candleSize',6,'candleSize');

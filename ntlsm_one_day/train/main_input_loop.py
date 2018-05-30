@@ -37,13 +37,18 @@ class MainInputLoop:
             index = i * self.myFlags.candleSize;
 
             oneX,oneY = self.oneInOutPrep.fixOneInputOutputShots(arr,index);
-            oneX = np.array(oneX,dtype='float32');
-            if(oneY > 0.5):
-                xUp[upCount] = oneX;
-                upCount = upCount + 1 ;
+            
+            if(oneY == -1.0):
+                None;
             else :
-                xDown[downCount] = oneX;
-                downCount = downCount + 1;
+
+                oneX = np.array(oneX,dtype='float32');
+                if(oneY > 0.5):
+                    xUp[upCount] = oneX;
+                    upCount = upCount + 1 ;
+                else :
+                    xDown[downCount] = oneX;
+                    downCount = downCount + 1;
         myCount = downCount;
         if(downCount > upCount):
             myCount = upCount;
@@ -86,13 +91,17 @@ class MainInputLoop:
             index = i * self.myFlags.candleSize;
 
             oneX,oneY = self.oneInOutPrep.fixOneInputOutput(arr,index);
-            oneX = np.array(oneX,dtype='float32');
-            if(oneY > 0.5):
-                xUp[upCount] = oneX;
-                upCount = upCount + 1 ;
+            if(oneY == -1.0):
+                None;
             else :
-                xDown[downCount] = oneX;
-                downCount = downCount + 1;
+
+                oneX = np.array(oneX,dtype='float32');
+                if(oneY > 0.5):
+                    xUp[upCount] = oneX;
+                    upCount = upCount + 1 ;
+                else :
+                    xDown[downCount] = oneX;
+                    downCount = downCount + 1;
         myCount = downCount;
         if(downCount > upCount):
             myCount = upCount;
