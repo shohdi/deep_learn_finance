@@ -70,8 +70,11 @@ class OneInOutPrep:
         close = inputArr[self.myFlags.noOfShots,oneShot-1,0];
         if(resultClose > close):
             result[0] = 1.0;
-        else:
+        elif (resultClose < close):
             result[0] = 0.0;
+        else :
+            result[0] = -1.0;
+
 
         return inputArr,result[0];
 
@@ -92,9 +95,12 @@ class OneInOutPrep:
         close = inputArr[self.myFlags.INPUT_SIZE-1,0];
         if(resultClose > close):
             result[0] = 1.0;
-        else:
+        elif (resultClose < close):
             result[0] = 0.0;
+        else :
+            result[0] = -1.0;
 
+        #inputArr = self.compressCandles(inputArr);
         return inputArr,result[0];
     
 
@@ -112,3 +118,41 @@ class OneInOutPrep:
         ret = ret.reshape((-1,self.myFlags.candleSize));
 
         return ret;
+
+    
+
+    def compressOneMulti(self,arr):
+        ret = [];
+        
+
+        length =len(arr);
+        
+        ret.append(arr[length-1][0]);
+        
+        ret.append(np.amax(arr));
+        ret.append(np.amin(arr));
+
+
+
+
+        return np.array(ret,dtype='float32');
+    
+
+    def compressCandles(self,arr):
+        multi = self.myFlags.HOW_MANY_MINUTES;
+        if(multi <= 1):
+            return arr;
+        
+        ret = [];
+        lenth = len(arr);
+        newLen = (lenth/multi);
+        newLen = int(newLen);
+        start =  lenth - (newLen * multi);
+        newArr = arr[start:];
+        newArr = newArr.reshape(newLen,multi,3);
+        for i in range(newLen):
+            multiArr = newArr[i];
+            arr = self.compressOneMulti(multiArr);
+            ret.append(arr);
+    
+        return np.array(ret,dtype='float32');
