@@ -15,11 +15,11 @@ FLAGS = flags.FLAGS;
 flags.DEFINE_string('shohdi_debug','False','shohdi_debug');
 flags.DEFINE_integer('INPUT_SIZE',1536 ,'INPUT_SIZE');
 flags.DEFINE_integer('OUTPUT_SIZE',96,'OUTPUT_SIZE');
-flags.DEFINE_integer('HOW_MANY_MINUTES',96,'HOW_MANY_MINUTES');
+flags.DEFINE_integer('HOW_MANY_MINUTES',4,'HOW_MANY_MINUTES');
 flags.DEFINE_string('INPUT_FOLDER','input','INPUT_FOLDER');
 
 
-flags.DEFINE_integer('npEpoch',1,'npEpoch');
+flags.DEFINE_integer('npEpoch',5,'npEpoch');
 
 flags.DEFINE_integer('batchSize',128,'batchSize');
 

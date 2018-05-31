@@ -18,6 +18,7 @@ class MainInputLoop:
         self.oneInOutPrep = OneInOutPrep();
         self.joinInput = JoinInput();
         self.readFile = ReadFile();
+        self.INPUT_SIZE = self.myFlags.INPUT_SIZE // self.myFlags.HOW_MANY_MINUTES;
 
     def normalizeInputShots(self,files):
         
@@ -80,10 +81,10 @@ class MainInputLoop:
         arr = np.array( self.readFile.readMultiFiles(fileNames));
         size = int( len(arr)//self.myFlags.candleSize);
         samplesSize = size- (self.myFlags.INPUT_SIZE + self.myFlags.OUTPUT_SIZE);
-        X = np.zeros((samplesSize,self.myFlags.INPUT_SIZE ,3),dtype='float32');
+        X = np.zeros((samplesSize,self.INPUT_SIZE ,3),dtype='float32');
 
-        xUp = np.zeros((samplesSize,self.myFlags.INPUT_SIZE ,3),dtype='float32');
-        xDown = np.zeros((samplesSize,self.myFlags.INPUT_SIZE ,3),dtype='float32');
+        xUp = np.zeros((samplesSize,self.INPUT_SIZE ,3),dtype='float32');
+        xDown = np.zeros((samplesSize,self.INPUT_SIZE ,3),dtype='float32');
         upCount = 0;
         downCount = 0;
         Y = np.zeros((samplesSize,1),dtype='float32');

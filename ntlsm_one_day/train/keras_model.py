@@ -31,10 +31,11 @@ from train.my_flags import MyFlags
 class KerasModel:
     def __init__(self):
         self.myFlags = MyFlags();
+        self.INPUT_SIZE = self.myFlags.INPUT_SIZE // self.myFlags.HOW_MANY_MINUTES ;
     
 
     def buildModel(self):
-        shape = (self.myFlags.INPUT_SIZE,3);
+        shape = (self.INPUT_SIZE,3);
         if(self.myFlags.noOfShots > 1):
             shape = (self.myFlags.noOfShots+1,(self.myFlags.INPUT_SIZE - self.myFlags.noOfShots)*3);
         

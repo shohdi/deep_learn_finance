@@ -100,7 +100,7 @@ class OneInOutPrep:
         else :
             result[0] = -1.0;
 
-        #inputArr = self.compressCandles(inputArr);
+        inputArr = self.compressCandles(inputArr);
         return inputArr,result[0];
     
 
