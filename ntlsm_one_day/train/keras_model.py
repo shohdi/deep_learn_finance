@@ -49,7 +49,8 @@ class KerasModel:
         model.add(Dropout(0.2));
         model.add(Dense(1))
 
-        model.add(Activation("sigmoid"))
+        model.add(Activation("sigmoid"));
+        model.summary();
         return model;
     
 

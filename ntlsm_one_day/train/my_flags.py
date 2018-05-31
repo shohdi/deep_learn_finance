@@ -13,13 +13,13 @@ from train.read_file import ReadFile
 flags = tf.app.flags;
 FLAGS = flags.FLAGS;
 flags.DEFINE_string('shohdi_debug','False','shohdi_debug');
-flags.DEFINE_integer('INPUT_SIZE',1536 ,'INPUT_SIZE');
-flags.DEFINE_integer('OUTPUT_SIZE',96,'OUTPUT_SIZE');
-flags.DEFINE_integer('HOW_MANY_MINUTES',4,'HOW_MANY_MINUTES');
+flags.DEFINE_integer('INPUT_SIZE',16 ,'INPUT_SIZE');
+flags.DEFINE_integer('OUTPUT_SIZE',1,'OUTPUT_SIZE');
+flags.DEFINE_integer('HOW_MANY_MINUTES',1,'HOW_MANY_MINUTES');
 flags.DEFINE_string('INPUT_FOLDER','input','INPUT_FOLDER');
 
 
-flags.DEFINE_integer('npEpoch',5,'npEpoch');
+flags.DEFINE_integer('npEpoch',1,'npEpoch');
 
 flags.DEFINE_integer('batchSize',128,'batchSize');
 
@@ -39,7 +39,7 @@ flags.DEFINE_string('testFiles','last_year.csv','testFiles');
 
 flags.DEFINE_bool('isOperation',True,'isOperation');
 flags.DEFINE_integer('candleSize',6,'candleSize');
-flags.DEFINE_integer('hiddenUnits',128,'hiddenUnits');
+flags.DEFINE_integer('hiddenUnits',256,'hiddenUnits');
 flags.DEFINE_integer('hiddenLayers',1,'hiddenLayers');
 flags.DEFINE_integer('noOfShots',0,'noOfShots');
 

@@ -103,6 +103,9 @@ class MainInputLoop:
                 else :
                     xDown[downCount] = oneX;
                     downCount = downCount + 1;
+            
+            if(i % 1000 == 0):
+                print ('first loop input number : %d' % (index));
         myCount = downCount;
         if(downCount > upCount):
             myCount = upCount;
