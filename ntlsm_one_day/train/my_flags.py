@@ -19,7 +19,7 @@ flags.DEFINE_integer('HOW_MANY_MINUTES',1,'HOW_MANY_MINUTES');
 flags.DEFINE_string('INPUT_FOLDER','input','INPUT_FOLDER');
 
 
-flags.DEFINE_integer('npEpoch',1,'npEpoch');
+flags.DEFINE_integer('npEpoch',16,'npEpoch');
 
 flags.DEFINE_integer('batchSize',128,'batchSize');
 
@@ -39,7 +39,7 @@ flags.DEFINE_string('testFiles','last_year.csv','testFiles');
 
 flags.DEFINE_bool('isOperation',True,'isOperation');
 flags.DEFINE_integer('candleSize',6,'candleSize');
-flags.DEFINE_integer('hiddenUnits',256,'hiddenUnits');
+flags.DEFINE_integer('hiddenUnits',1024,'hiddenUnits');
 flags.DEFINE_integer('hiddenLayers',1,'hiddenLayers');
 flags.DEFINE_integer('noOfShots',0,'noOfShots');
 
