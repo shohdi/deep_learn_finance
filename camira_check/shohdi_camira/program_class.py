@@ -7,6 +7,7 @@ import collections;
 import numpy as np ;
 from sklearn.metrics import mean_squared_error
 from gtts import gTTS
+import uuid;
 
 
 
@@ -30,9 +31,9 @@ class ProgramClass:
         self.cam.start()
         self.frames = collections.deque(maxlen=30); 
         #tts = gTTS(text='Go out now , we wa we wa', lang='en')
-        #tts.save("theif1.mp3");
+        #tts.save(os.path.join(".", "input","theif1.mp3"));
         #tts = gTTS(text='اخرج الان , وي وا وي وا', lang='ar')
-        #tts.save("theif2.mp3");
+        #tts.save(os.path.join(".", "input","theif2.mp3"));
         self.err = None;
         
         
@@ -57,7 +58,7 @@ class ProgramClass:
             if (myEvent == True):
                 break;
             found5 = False;
-            if(i >= 500):
+            if(i >= 250):
                 found5 = True;
                 i = 0;
                 
@@ -81,6 +82,10 @@ class ProgramClass:
                     #do your checks here;
                     y1 = arr[myLen-1].reshape((640,-1));
                     y2 = arr[myLen-2].reshape((640,-1));
+                    y1 = y1/255.0
+                    y2 = y2/255.0
+                    y1 = np.array(y1,dtype='float32');
+                    y2 = np.array(y2,dtype='float32');
                     err = mean_squared_error(y1,y2);
                     foundErr = False;
                     if(self.err != None):
@@ -90,6 +95,14 @@ class ProgramClass:
                     else :
                         if(err > (self.err + (self.err * 0.10))):
                             print(err);
+                            import scipy.misc as smp
+                            img1 = smp.toimage( arr[myLen-1]);
+                            img2 = smp.toimage( arr[myLen-2])
+                            myUuid = str(uuid.uuid4());
+                            img1Name = os.path.join('output','img1_{0}.png'.format(myUuid));
+                            img2Name = os.path.join('output','img2_{0}.png'.format(myUuid))
+                            smp.imsave(img1Name ,img1);
+                            smp.imsave(img2Name ,img2);
                             
                             if(not pygame.mixer.music.get_busy()):
                                 #pygame.mixer.music.load(os.path.join(".","input","theif1.mp3"));
