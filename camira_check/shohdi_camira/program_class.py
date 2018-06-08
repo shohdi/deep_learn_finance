@@ -8,6 +8,11 @@ import numpy as np ;
 from sklearn.metrics import mean_squared_error
 from gtts import gTTS
 import uuid;
+import smtplib
+
+# Here are the email package modules we'll need
+from email.mime.image import MIMEImage
+from email.mime.multipart import MIMEMultipart
 
 
 
@@ -103,11 +108,41 @@ class ProgramClass:
                             img2Name = os.path.join('output','img2_{0}.png'.format(myUuid))
                             smp.imsave(img1Name ,img1);
                             smp.imsave(img2Name ,img2);
-                            
-                            if(not pygame.mixer.music.get_busy()):
+
+                            # Create the container (outer) email message.
+                            msg = MIMEMultipart()
+                            msg['Subject'] = 'Home Security Risk'
+                            # me == the sender's email address
+                            # family = the list of all recipients' email addresses
+                            msg['From'] = 'shohdi_home@gmail.com'
+                            msg['To'] = 'shohdi@gmail.com'
+                            msg.preamble = 'Home Security Risk'
+
+                            # Assume we know that the image files are all in PNG format
+
+                            # Open the files in binary mode.  Let the MIMEImage class automatically
+                            # guess the specific image type.
+                            fp = open(img1Name, 'rb')
+                            img1f = MIMEImage(fp.read())
+                            fp.close()
+                            msg.attach(img1f)
+                            fp = open(img2Name, 'rb')
+                            img2f = MIMEImage(fp.read())
+                            fp.close()
+                            msg.attach(img2f)
+
+                            # Send the email via our own SMTP server.
+                            s = smtplib.SMTP('')
+                            s.sendmail('', [''], msg.as_string())
+                            s.quit()
+
+
+
+                            #if(not pygame.mixer.music.get_busy()):
                                 #pygame.mixer.music.load(os.path.join(".","input","theif1.mp3"));
-                                pygame.mixer.music.load(os.path.join(".", "input","theif2.mp3"));
-                                pygame.mixer.music.play(0);
+                                #pygame.mixer.music.load(os.path.join(".", "input","theif2.mp3"));
+                                #pygame.mixer.music.play(0);
+
                                 
                     if(foundErr == True):
                         self.err = None;        

@@ -13,3 +13,5 @@ reinforcement_learn/data/rl-network.h5
 reinforcement_learn/data/rl-network-results.tsv
 ntlsm_one_day/one_step_save/**/*.*
 ntlsm_one_day/**/*.h5
+**/output/*
+
