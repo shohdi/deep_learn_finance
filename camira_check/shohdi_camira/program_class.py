@@ -13,6 +13,7 @@ import smtplib
 # Here are the email package modules we'll need
 from email.mime.image import MIMEImage
 from email.mime.multipart import MIMEMultipart
+from shohdi_camira.my_flags import MyFlags
 
 
 
@@ -24,6 +25,10 @@ from email.mime.multipart import MIMEMultipart
 
 class ProgramClass:
     def __init__(self):
+        self.myFlags = MyFlags();
+        self.myFlags.userName = input('User : ');
+        self.myFlags.passWord = input('Password : ');
+        self.myFlags.to = input('To : ');
         #os.environ["SDL_VIDEODRIVER"] = "dummy";
         
         #pygame.mixer.init()
@@ -83,7 +88,7 @@ class ProgramClass:
                 self.frames.append(pygame.surfarray.array3d(self.screen));
                 arr = np.array(list(self.frames));
                 myLen = len(arr);
-                if(myLen > 2):
+                if(myLen >= 30):
                     #do your checks here;
                     y1 = arr[myLen-1].reshape((640,-1));
                     y2 = arr[myLen-2].reshape((640,-1));
@@ -132,8 +137,11 @@ class ProgramClass:
                             msg.attach(img2f)
 
                             # Send the email via our own SMTP server.
-                            s = smtplib.SMTP('')
-                            s.sendmail('', [''], msg.as_string())
+                            s = smtplib.SMTP('smtp.gmail.com:587')
+                            s.ehlo()
+                            s.starttls()
+                            s.login(self.myFlags.userName,self.myFlags.passWord)
+                            s.sendmail(self.myFlags.userName, [self.myFlags.to], msg.as_string())
                             s.quit()
 
 
