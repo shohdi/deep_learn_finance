@@ -8,7 +8,10 @@ import numpy as np ;
 from sklearn.metrics import mean_squared_error
 from gtts import gTTS
 import uuid;
-import smtplib
+import smtplib;
+from PIL import Image;
+import PIL;
+import threading;
 
 # Here are the email package modules we'll need
 from email.mime.image import MIMEImage
@@ -105,44 +108,9 @@ class ProgramClass:
                     else :
                         if(err > (self.err + (self.err * 0.10))):
                             print(err);
-                            import scipy.misc as smp
-                            img1 = smp.toimage( arr[myLen-1]);
-                            img2 = smp.toimage( arr[myLen-2])
-                            myUuid = str(uuid.uuid4());
-                            img1Name = os.path.join('output','img1_{0}.png'.format(myUuid));
-                            img2Name = os.path.join('output','img2_{0}.png'.format(myUuid))
-                            smp.imsave(img1Name ,img1);
-                            smp.imsave(img2Name ,img2);
-
-                            # Create the container (outer) email message.
-                            msg = MIMEMultipart()
-                            msg['Subject'] = 'Home Security Risk'
-                            # me == the sender's email address
-                            # family = the list of all recipients' email addresses
-                            msg['From'] = 'shohdi_home@gmail.com'
-                            msg['To'] = 'shohdi@gmail.com'
-                            msg.preamble = 'Home Security Risk'
-
-                            # Assume we know that the image files are all in PNG format
-
-                            # Open the files in binary mode.  Let the MIMEImage class automatically
-                            # guess the specific image type.
-                            fp = open(img1Name, 'rb')
-                            img1f = MIMEImage(fp.read())
-                            fp.close()
-                            msg.attach(img1f)
-                            fp = open(img2Name, 'rb')
-                            img2f = MIMEImage(fp.read())
-                            fp.close()
-                            msg.attach(img2f)
-
-                            # Send the email via our own SMTP server.
-                            s = smtplib.SMTP('smtp.gmail.com:587')
-                            s.ehlo()
-                            s.starttls()
-                            s.login(self.myFlags.userName,self.myFlags.passWord)
-                            s.sendmail(self.myFlags.userName, [self.myFlags.to], msg.as_string())
-                            s.quit()
+                            myThreadParams = (arr,myLen,self.myFlags);
+                            th = threading.Thread(target=sendMail,args=[myThreadParams]);
+                            th.start();
 
 
 
@@ -159,3 +127,53 @@ class ProgramClass:
                     #print(arr[0].shape)
                     #y1 =  arr[0].reshape((640,-1));
                     #print(y1.shape);
+                
+    
+def sendMail(data):
+    arr = data[0];
+    myLen = data[1];
+    myFlags  = data[2];
+    img1 = Image.fromarray(arr[myLen-1],'RGB')
+    img1 = img1.rotate(-90,PIL.Image.NEAREST,True);
+    
+
+                            
+    img2 = Image.fromarray( arr[myLen-2],'RGB')
+    img2 = img2.rotate(-90,PIL.Image.NEAREST,True);
+    myUuid = str(uuid.uuid4());
+    img1Name = os.path.join('output','img1_{0}.jpg'.format(myUuid));
+    img2Name = os.path.join('output','img2_{0}.jpg'.format(myUuid))
+    img1.save(img1Name);
+    img2.save(img2Name);
+
+    # Create the container (outer) email message.
+    msg = MIMEMultipart()
+    msg['Subject'] = 'Home Security Risk'
+    # me == the sender's email address
+    # family = the list of all recipients' email addresses
+    msg['From'] = 'shohdi_home@gmail.com'
+    msg['To'] = 'shohdi@gmail.com'
+    msg.preamble = 'Home Security Risk'
+
+    # Assume we know that the image files are all in PNG format
+
+    # Open the files in binary mode.  Let the MIMEImage class automatically
+    # guess the specific image type.
+    fp = open(img1Name, 'rb')
+    img1f = MIMEImage(fp.read())
+    fp.close()
+    msg.attach(img1f)
+    fp = open(img2Name, 'rb')
+    img2f = MIMEImage(fp.read())
+    fp.close()
+    msg.attach(img2f)
+
+    # Send the email via our own SMTP server.
+    s = smtplib.SMTP('smtp.gmail.com:587')
+    s.ehlo()
+    s.starttls()
+    s.login(myFlags.userName,myFlags.passWord)
+    s.sendmail(myFlags.userName, [myFlags.to], msg.as_string())
+    s.quit()
+
+
