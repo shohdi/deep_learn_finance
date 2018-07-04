@@ -65,7 +65,7 @@ class ProgramClass:
             for event in events:
                 
                 if event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_q:
+                    if event.key == pygame.K_q and pygame.key.get_mods() & pygame.KMOD_CTRL:
                         myEvent = True;
                        
             if (myEvent == True):
