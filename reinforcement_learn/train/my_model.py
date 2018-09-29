@@ -71,8 +71,8 @@ INITIAL_EPSILON = 0.1 # starting value of epsilon
 FINAL_EPSILON = 0.0001 # final value of epsilon
 MEMORY_SIZE = 50000 # number of previous transitions to remember
 NUM_EPOCHS_OBSERVE = 100
-NUM_EPOCHS_TRAIN = 10000
-BATCH_SIZE = 32
+NUM_EPOCHS_TRAIN = 5000
+BATCH_SIZE = 100
 NUM_EPOCHS = NUM_EPOCHS_OBSERVE + NUM_EPOCHS_TRAIN
 
 game = train.wrapped_game.MyWrappedGame()
