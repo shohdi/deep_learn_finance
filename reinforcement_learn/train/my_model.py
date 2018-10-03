@@ -41,12 +41,16 @@ def get_next_batch(experience,model,num_actions,gamma,batch_size):
         s_t,a_t,r_t,s_tp1,game_over = batch[i]
         X[i] = s_t
         Y[i] = model.predict(s_t)[0]
-        Q_sa = np.max(model.predict(s_tp1)[0])
+        Q_sa = np.max(model1.predict(s_tp1)[0])
         if game_over:
             Y[i,a_t] = r_t
         else:
             Y[i,a_t] = r_t + gamma * Q_sa
     return X,Y
+
+def copyModelWeights(modelSource,model1Target):
+    weights = modelSource.get_weights();
+    model1Target.set_weights(weights);
 
 
 model = Sequential()
@@ -62,6 +66,25 @@ model.add(Activation("relu"))
 model.add(Dense(3,kernel_initializer="normal"))
 model.compile(optimizer=Adam(lr=1e-6),loss="mse")
 
+model1 = Sequential()
+model1.add(Conv2D(32,kernel_size=8,strides=4,kernel_initializer="normal",padding="same",input_shape=(80,80,4)))
+model1.add(Activation("relu"))
+model1.add(Conv2D(64,kernel_size=4,strides=2,kernel_initializer="normal",padding="same"))
+model1.add(Activation("relu"))
+model1.add(Conv2D(64,kernel_size=3,strides=1,kernel_initializer="normal",padding="same"))
+model1.add(Activation("relu"))
+model1.add(Flatten())
+model1.add(Dense(512,kernel_initializer="normal"))
+model1.add(Activation("relu"))
+model1.add(Dense(3,kernel_initializer="normal"))
+model1.compile(optimizer=Adam(lr=1e-6),loss="mse")
+
+copyModelWeights(model,model1);
+
+
+
+    
+
 
 #initialize parameters
 DATA_DIR= os.path.join(".","data")
@@ -72,8 +95,10 @@ FINAL_EPSILON = 0.0001 # final value of epsilon
 MEMORY_SIZE = 50000 # number of previous transitions to remember
 NUM_EPOCHS_OBSERVE = 100
 NUM_EPOCHS_TRAIN = 5000
-BATCH_SIZE = 100
+BATCH_SIZE = 32
 NUM_EPOCHS = NUM_EPOCHS_OBSERVE + NUM_EPOCHS_TRAIN
+ITERATE_COPY_Q = 100;
+
 
 game = train.wrapped_game.MyWrappedGame()
 experience  = collections.deque(maxlen=MEMORY_SIZE)
@@ -82,7 +107,10 @@ num_games,num_wins = 0,0
 epsilon = INITIAL_EPSILON
 
 for e in range(NUM_EPOCHS):
+    if((e % ITERATE_COPY_Q) == 0):
+        copyModelWeights(model,model1);
     game.reset()
+
     loss=0.0
     #get first state
     a_0 = 1 # (0= left , 1 = stay , 2 = right)
@@ -112,11 +140,11 @@ for e in range(NUM_EPOCHS):
         #store experience
         experience.append((s_tm1,a_t,r_t,s_t,game_over))
 
-    if e > NUM_EPOCHS_OBSERVE :
-        # finished observing , now start training
-        # get next batch
-        X,Y = get_next_batch(experience,model,NUM_ACTIONS,GAMMA,BATCH_SIZE)
-        loss += model.train_on_batch(X,Y)
+        if e > NUM_EPOCHS_OBSERVE :
+            # finished observing , now start training
+            # get next batch
+            X,Y = get_next_batch(experience,model,NUM_ACTIONS,GAMMA,BATCH_SIZE)
+            loss += model.train_on_batch(X,Y)
     
     
     #reduce epsilon gradually
