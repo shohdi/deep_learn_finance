@@ -102,6 +102,7 @@ ITERATE_COPY_Q = 100;
 
 game = train.wrapped_game.MyWrappedGame()
 experience  = collections.deque(maxlen=MEMORY_SIZE)
+last_ex = collections.deque(maxlen=MEMORY_SIZE);
 fout = open(os.path.join(DATA_DIR,"rl-network-results.tsv"),"wb")
 num_games,num_wins = 0,0
 epsilon = INITIAL_EPSILON
@@ -139,12 +140,17 @@ for e in range(NUM_EPOCHS):
             num_wins +=1
         #store experience
         experience.append((s_tm1,a_t,r_t,s_t,game_over))
+        if(r_t == 1):
+            last_ex.append((s_tm1,a_t,r_t,s_t,game_over))
 
         if e > NUM_EPOCHS_OBSERVE :
             # finished observing , now start training
             # get next batch
             X,Y = get_next_batch(experience,model,NUM_ACTIONS,GAMMA,BATCH_SIZE)
             loss += model.train_on_batch(X,Y)
+            X,Y = get_next_batch(last_ex,model,NUM_ACTIONS,GAMMA,BATCH_SIZE)
+            loss += model.train_on_batch(X,Y)
+            model1.train_on_batch(X,Y)
     
     
     #reduce epsilon gradually
@@ -154,8 +160,10 @@ for e in range(NUM_EPOCHS):
     print("Epoch {:04d}/{:d} | loss {:.5f} | Win count {:d}".format(e + 1,NUM_EPOCHS,loss,num_wins))
     if e % 100 == 0 :
         model.save(os.path.join(DATA_DIR,"rl-network.h5"),overwrite=True)
+        model.save_weights(os.path.join(DATA_DIR,"rl-network_w.h5"),overwrite=True)
     
 
 fout.close()
 model.save(os.path.join(DATA_DIR,"rl-network.h5"),overwrite=True)
+model.save_weights(os.path.join(DATA_DIR,"rl-network_w.h5"),overwrite=True)
 
