@@ -40,13 +40,25 @@ def preprocess_images(images):
 
 
 #initialize parameter
-DATA_DIR= os.path.join(".","data1")
+DATA_DIR= os.path.join(".","data2")
 NUM_ACTIONS = 3 #number of valid actions (left , stay , right)
 
 NUM_GAMES_C = 100
 
+model = Sequential()
+model.add(Conv2D(32,kernel_size=8,strides=4,kernel_initializer="normal",padding="same",input_shape=(80,80,4)))
+model.add(Activation("relu"))
+model.add(Conv2D(64,kernel_size=4,strides=2,kernel_initializer="normal",padding="same"))
+model.add(Activation("relu"))
+model.add(Conv2D(64,kernel_size=3,strides=1,kernel_initializer="normal",padding="same"))
+model.add(Activation("relu"))
+model.add(Flatten())
+model.add(Dense(512,kernel_initializer="normal"))
+model.add(Activation("relu"))
+model.add(Dense(3,kernel_initializer="normal"))
+model.compile(optimizer=Adam(lr=1e-6),loss="mse")
 
-model = load_model(os.path.join(DATA_DIR, "rl-network.h5"))
+model.load_weights(os.path.join(DATA_DIR, "rl-network_w.h5"))
 
 
 
