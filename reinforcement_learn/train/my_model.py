@@ -136,11 +136,11 @@ for e in range(NUM_EPOCHS):
         x_t , r_t , game_over = game.step(a_t)
         s_t = preprocess_images(x_t)
         #if reward , increment num_wins
-        if r_t == 1 :
+        if r_t > 0 and game_over :
             num_wins +=1
         #store experience
         experience.append((s_tm1,a_t,r_t,s_t,game_over))
-        if(r_t == 1):
+        if(r_t > 0 and game_over):
             last_ex.append((s_tm1,a_t,r_t,s_t,game_over))
 
         if e > NUM_EPOCHS_OBSERVE :
