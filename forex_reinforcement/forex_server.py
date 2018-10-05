@@ -1,22 +1,54 @@
 from flask import Flask
 import numpy as np
 import math
+from forex_agent import ForexAgent
+from forex_environment import ForexEnvironment
+import threading;
 
 app = Flask(__name__)
-i = 0;
+
+myAgent = ForexAgent(ForexEnvironment());
+
+def threadMethod(data):
+    myAgent.mainLoop();
+
+th = None;
+th = threading.Thread(target=threadMethod,args=[None]);
+th.start();
+
+    
+
 
 @app.route('/')
 def hello_world():
-    global i
-    i= i+1
-    return 'Hello, World!' + str(i)
+   
+    return 'Hello, World!';
 
 
 @app.route('/action/check')
 def action_check():
-    return str(int( math.floor( (np.random.random() * 100))));
+    i=0;
+    while(not myAgent.env._step_started):
+        i = i+ 1;
+    myAgent.env._step_started = False;
+    action = myAgent.env._last_action;
+    strAction =  str(action);
+
+    return strAction;
 
 
 @app.route('/action/step-ret/<string:ret>')
 def action_ret(ret):
+    print(ret);
+    arr = ret.split(',');
+    arrFloat = [float(i) for i in arr];
+    state = arrFloat[0:(100*6)];
+    stateNum = np.array(state,dtype=np.float32);
+    stateNum = np.reshape(stateNum,(100,6));
+    reward = arrFloat[-2];
+    gameOver = arrFloat[-1];
+    myAgent.env._last_game_over = (True  if gameOver > 0  else False);
+    myAgent.env._last_reward = reward;
+    myAgent.env._last_state = stateNum;
+    myAgent.env._step_ended = True;
     return ret;
