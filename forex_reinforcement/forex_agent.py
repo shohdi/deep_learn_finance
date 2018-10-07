@@ -9,7 +9,8 @@ class ForexAgent:
     
 
     def mainLoop(self):
-        #print(self.env.get_action_sample());
-        self.env.step(self.env.get_action_sample());
-        #print(self.env.get_action_sample());
+        while True:
+            #print(self.env.get_action_sample());
+            self.env.step(self.env.get_action_sample());
+            #print(self.env.get_action_sample());
         

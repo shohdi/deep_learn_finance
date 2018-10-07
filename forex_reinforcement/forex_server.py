@@ -1,4 +1,5 @@
 from flask import Flask
+from flask import request
 import numpy as np
 import math
 from forex_agent import ForexAgent
@@ -37,9 +38,12 @@ def action_check():
     return strAction;
 
 
-@app.route('/action/step-ret/<string:ret>')
-def action_ret(ret):
-    print(ret);
+@app.route('/action/step-ret',methods=[ 'POST'])
+def action_ret():
+    
+    ret = request.form["ret"]
+    
+    
     arr = ret.split(',');
     arrFloat = [float(i) for i in arr];
     state = arrFloat[0:(100*6)];
