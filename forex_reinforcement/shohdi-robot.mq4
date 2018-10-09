@@ -1133,6 +1133,8 @@ void OnDeinit(const int reason)
   
   void calcSuccessToFailOrders()
   {
+      noOfSuccess = 0;
+      noOfFail = 0;
       int hstTotal = OrdersHistoryTotal();
       for(int i=0; i < hstTotal; i++)           
        {
@@ -1266,11 +1268,11 @@ void OnTick()
                         orderIsOpen = true;
                         if(lastDir > 0)
                         {
-                           up = 1;
+                           up = OrderOpenPrice();
                         }
                         else
                         {
-                           down = 1;
+                           down = OrderOpenPrice();
                         }
                      }
                   }
@@ -1319,6 +1321,8 @@ void OnTick()
                if(reward != 0)
                {
                   Print("closing order reward =  ", reward);
+                  calcSuccessToFailOrders();
+                  Print("no of success : " + noOfSuccess + " , no of fail : " + noOfFail);
                }
                
                
