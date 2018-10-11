@@ -43,6 +43,7 @@ struct MqlCandle
 MqlTick currentTick;
 MqlTick lastTick;
 MqlCandle lastCandle;
+MqlCandle lastCandle1m;
  
  
   
@@ -1081,6 +1082,7 @@ int OnInit()
       currentTick.ask = -1;
       currentTick.bid = -1;
       lastCandle.Close1 = -1;
+      lastCandle1m.Close1 = -1; 
       
       
       double balance = AccountInfoDouble(ACCOUNT_BALANCE);
@@ -1169,15 +1171,25 @@ void OnTick()
          
          //Print("new Tick" + currentTick.time);
          MqlCandle currentCandle = getCandle(0);
+         MqlCandle currentCandle1m = getCandle(0,PERIOD_M1);
+         
+        
+         
          
          
          if(lastCandle.Close1 == -1)
          {
             lastCandle = currentCandle;
+            lastCandle1m = currentCandle1m;
             return;
          }
          
-         
+         if(currentCandle1m.Date != lastCandle1m.Date)
+         {
+            //one minute candle change
+            onEnvStep();
+            
+         }
          
          if(currentCandle.Date != lastCandle.Date)
          {
@@ -1217,8 +1229,9 @@ void OnTick()
          
          
           lastCandle = currentCandle;
+          lastCandle1m = currentCandle1m;
           
-          onEnvStep();
+          
          
             
         
@@ -1228,125 +1241,273 @@ void OnTick()
   
   
   bool lastIsOrderOpen = false;
+  bool started = false;
+  
+  bool isDone = false;
+
+   double up = 0;
+
+   double down = 0;
+  
+  double reward = 0.0;
   
   void onEnvStep()
+
   {
+
+
     string cookie=NULL,headers;
+
             char post[],result[];
+
             int res;
+
             string myUrl = url + "check";
-            
-            res=WebRequest("GET",myUrl,cookie,NULL,10000,post,0,result,headers);
-            string webRet = "";
-            bool isDone = false;
-            double up = 0;
-            double down = 0;
-            if(res != -1)
+
+            if(started)
             {
-               webRet = CharArrayToString(result,0,ArraySize(result),CP_UTF8);
-               
-               
-               //do trade in case of trade
-               int tradeTypeAgent = StrToInteger(webRet);
-               bool orderIsOpen = false;
-               double reward = 0.0;
-               if(lastIsOrderOpen && getOpenedOrderNo() == 0)
-               {
-                   if(OrderSelect(lastTicket,SELECT_BY_TICKET) == true)
-                     {
-                         reward = getReward();
-                         lastIsOrderOpen = false;
-                         isDone = true;
-                     }
-               }
-               else
-               {
-                  if(getOpenedOrderNo() == 1)
-                  {
-                     if(OrderSelect(lastTicket,SELECT_BY_TICKET) == true)
-                     {
-                        orderIsOpen = true;
-                        if(lastDir > 0)
-                        {
-                           up = OrderOpenPrice();
-                        }
-                        else
-                        {
-                           down = OrderOpenPrice();
-                        }
-                     }
-                  }
-                  
-                  if(!orderIsOpen && (tradeTypeAgent == 1 || tradeTypeAgent == 2))
-                  {
-                     int tradeType = 0;
-                     if(tradeTypeAgent == 1)
-                     {
-                        tradeType = -1;
-                     }
-                     else if(tradeTypeAgent == 2)
-                     {
-                        tradeType = 1;
-                     }
-                     if(tradeType != 0)
-                     {
-                        Print("opening trade ! ",tradeType);
-                        openTrade(tradeType);
-                        if(getOpenedOrderNo() == 1)
-                        {
-                           lastIsOrderOpen = true;
-                        }
-                     }
-                     
-                  }
-                  if(orderIsOpen && tradeTypeAgent == 3)
-                  {
-                     bool closeRes = OrderClose(OrderTicket(),OrderLots(),OrderClosePrice(),5,clrNONE);
-                      if(getOpenedOrderNo() == 0)
-                     {
-                        lastIsOrderOpen = false;
-                        isDone = true;
-                         reward = getReward();
-                        
-                     }
-                     
-                     
-                     
-                  }
-                  
-               }
-               
-               
-               
-               if(reward != 0)
-               {
-                  Print("closing order reward =  ", reward);
-                  calcSuccessToFailOrders();
-                  Print("no of success : " + noOfSuccess + " , no of fail : " + noOfFail);
-               }
-               
-               
                //get data to send to web api.
-               string strData = getDateToSendToServer(reward,isDone,up,down);
-                myUrl = url + "step-ret" ;
-            string allData = "ret=" + strData;
-            ArrayResize(post,StringToCharArray(allData,post,0,WHOLE_ARRAY,CP_UTF8)-1);
-            res=WebRequest("POST",myUrl,NULL,0,post,post,allData);
-               if(res != 200)
+               sendStateToServer();
+            }
+            
+
+            res=WebRequest("GET",myUrl,cookie,NULL,10000,post,0,result,headers);
+            started = true;
+            string webRet = "";
+
+            
+
+            if(res != -1)
+
+            {
+
+               webRet = CharArrayToString(result,0,ArraySize(result),CP_UTF8);
+
+               
+
+               
+
+               //do trade in case of trade
+
+               int tradeTypeAgent = StrToInteger(webRet);
+
+               bool orderIsOpen = false;
+
+               
+
+               if(lastIsOrderOpen && getOpenedOrderNo() == 0)
+
                {
+
+                   if(OrderSelect(lastTicket,SELECT_BY_TICKET) == true)
+
+                     {
+
+                         reward = getReward();
+
+                         lastIsOrderOpen = false;
+
+                         isDone = true;
+
+                     }
+
+               }
+
+               else
+
+               {
+
+                  if(getOpenedOrderNo() == 1)
+
+                  {
+
+                     if(OrderSelect(lastTicket,SELECT_BY_TICKET) == true)
+
+                     {
+
+                        orderIsOpen = true;
+
+                        if(lastDir > 0)
+
+                        {
+
+                           up = OrderOpenPrice();
+
+                        }
+
+                        else
+
+                        {
+
+                           down = OrderOpenPrice();
+
+                        }
+
+                     }
+
+                  }
+
+                  
+
+                  if(!orderIsOpen && (tradeTypeAgent == 1 || tradeTypeAgent == 2))
+
+                  {
+
+                     int tradeType = 0;
+
+                     if(tradeTypeAgent == 1)
+
+                     {
+
+                        tradeType = -1;
+
+                     }
+
+                     else if(tradeTypeAgent == 2)
+
+                     {
+
+                        tradeType = 1;
+
+                     }
+
+                     if(tradeType != 0)
+
+                     {
+
+                        Print("opening trade ! ",tradeType);
+
+                        openTrade(tradeType);
+
+                        if(getOpenedOrderNo() == 1)
+
+                        {
+
+                           lastIsOrderOpen = true;
+
+                        }
+
+                     }
+
+                     
+
+                  }
+
+                  if(orderIsOpen && tradeTypeAgent == 3)
+
+                  {
+
+                     bool closeRes = OrderClose(OrderTicket(),OrderLots(),OrderClosePrice(),5,clrNONE);
+
+                      if(getOpenedOrderNo() == 0)
+
+                     {
+
+                        lastIsOrderOpen = false;
+
+                        isDone = true;
+
+                         reward = getReward();
+
+                        
+
+                     }
+
+                     
+
+                     
+
+                     
+
+                  }
+
+                  
+
+               }
+
+               
+
+               
+
+               
+
+               if(reward != 0)
+
+               {
+
+                  Print("closing order reward =  ", reward);
+
+                  calcSuccessToFailOrders();
+
+                  Print("no of success : " + noOfSuccess + " , no of fail : " + noOfFail);
+
+               }
+
+               
+
+               
+
+               
+
+              
+
+               
+
+            }
+
+            else
+
+            {
+
+                Print("Error in web request. Error code  =",GetLastError());
+
+                Print(myUrl);
+
+            }
+
+            
+
+            
+
+           
+
+  }
+  
+  
+  void sendStateToServer()
+  {
+      char post[];
+       int res;
+      if(started)
+      {
+       string strData = getDateToSendToServer(reward,isDone,up,down);
+
+                string myUrl = url + "step-ret" ;
+
+            string allData = "ret=" + strData;
+
+            ArrayResize(post,StringToCharArray(allData,post,0,WHOLE_ARRAY,CP_UTF8)-1);
+
+            res=WebRequest("POST",myUrl,NULL,0,post,post,allData);
+
+               if(res != 200)
+
+               {
+
                   Print("Error in web request. Error code  =",GetLastError());
+
                   Print(myUrl);
+
                }
                
-            }
-            else
-            {
-                Print("Error in web request. Error code  =",GetLastError());
-                Print(myUrl);
-            }
-            
-            
-           
+                 isDone = false;
+
+    up = 0;
+
+    down = 0;
+  
+   reward = 0.0;
+        }
   }
   
   
@@ -1359,6 +1520,7 @@ void OnTick()
                      amountToLoss = minLossValue;
                   }
                  double reward = (OrderProfit() / (amountToLoss* riskToProfit));
+                  reward = OrderProfit();
      return reward;        
                
   }
@@ -1387,6 +1549,15 @@ void OnTick()
          strRet = strRet + DoubleToStr(closes[i]) + ",";
          strRet = strRet + DoubleToStr(up) + ",";
          strRet = strRet + DoubleToStr(down) + ",";
+         strRet = strRet + SymbolInfoDouble(_Symbol,SYMBOL_ASK) + ",";
+         strRet = strRet + SymbolInfoDouble(_Symbol,SYMBOL_BID) + ",";
+         double profit = 0;
+         if(up > 0 || down > 0)
+         {
+            profit = OrderProfit();
+         }
+         strRet = strRet + profit  + ",";
+         
       }
       
       strRet = strRet + DoubleToStr(reward) + ",";
