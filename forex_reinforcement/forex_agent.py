@@ -77,6 +77,9 @@ class ForexAgent:
         self.model = self.buildModel();
         self.model1 = self.buildModel();
         self.copyModelWeights(self.model,self.model1);
+        test = np.zeros((100,6));
+        out = self.model.predict([test]);
+        print("out of model like : ",out)
 
     def get_next_batch(self,experience,model,num_actions,gamma,batch_size):
         model = self.model;
