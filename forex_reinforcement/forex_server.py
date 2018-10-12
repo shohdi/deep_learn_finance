@@ -46,13 +46,15 @@ def action_ret():
     
     arr = ret.split(',');
     arrFloat = [float(i) for i in arr];
-    state = arrFloat[0:(100*9)];
+    state = arrFloat[0:(100*8)];
     stateNum = np.array(state,dtype=np.float32);
-    stateNum = np.reshape(stateNum,(100,9));
+    stateNum = np.reshape(stateNum,(100,8));
     reward = arrFloat[-2];
     gameOver = arrFloat[-1];
+    im_reward = arrFloat[-3];
     myAgent.env._last_game_over = (True  if gameOver > 0  else False);
     myAgent.env._last_reward = reward;
     myAgent.env._last_state = stateNum;
     myAgent.env._step_ended = True;
+    myAgent.env._last_im_reward = im_reward;
     return ret;

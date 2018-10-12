@@ -1551,14 +1551,16 @@ void OnTick()
          strRet = strRet + DoubleToStr(down) + ",";
          strRet = strRet + SymbolInfoDouble(_Symbol,SYMBOL_ASK) + ",";
          strRet = strRet + SymbolInfoDouble(_Symbol,SYMBOL_BID) + ",";
-         double profit = 0;
+         
+         
+      }
+      
+      double profit = 0;
          if(up > 0 || down > 0)
          {
             profit = OrderProfit();
          }
          strRet = strRet + profit  + ",";
-         
-      }
       
       strRet = strRet + DoubleToStr(reward) + ",";
       strRet = strRet + (isDone ? "1":"0");

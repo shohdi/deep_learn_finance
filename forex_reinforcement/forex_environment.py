@@ -15,6 +15,7 @@ class ForexEnvironment:
         self._last_reward = 0;
         self._last_game_over = False;
         self._myRandomFrame = 0;
+        self._last_im_reward = 0;
 
         
         
@@ -50,7 +51,7 @@ class ForexEnvironment:
         self._states_coll.append(self._last_state);
         
 
-        return self._last_state,self._last_reward,self._last_game_over,None;
+        return self._last_state,self._last_reward,self._last_game_over,self._last_im_reward;
     
 
     def normArray(self,arr):
@@ -84,7 +85,7 @@ class ForexEnvironment:
                 elif(down > 0 and (down - lastClose) >= 0.0005):
                     ret = 3;
                 '''
-                if(self._last_state[0,8] > 1):
+                if(self._last_im_reward > 1):
                     ret = 3;
                 elif(self._myRandomFrame > 10):
                     if(self._last_state[0,4] > 0 and self._last_state[0,3] > self._last_state[0,4]):
