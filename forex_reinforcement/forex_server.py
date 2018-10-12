@@ -49,6 +49,7 @@ def action_ret():
     state = arrFloat[0:(100*8)];
     stateNum = np.array(state,dtype=np.float32);
     stateNum = np.reshape(stateNum,(100,8));
+    stateNum = stateNum[:,0:6];
     reward = arrFloat[-2];
     gameOver = arrFloat[-1];
     im_reward = arrFloat[-3];
