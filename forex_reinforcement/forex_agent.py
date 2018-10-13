@@ -13,6 +13,7 @@ from keras.layers.core import Flatten
 from keras.layers.core import Dense
 from keras.layers.core import Dropout
 from keras.layers.core import RepeatVector
+from keras.layers.core import Reshape
 from keras.datasets import mnist
 from keras.utils import np_utils
 from keras.optimizers import SGD,RMSprop,Adam
@@ -47,7 +48,7 @@ class ForexAgent:
         self.env = env;
         self._started = False;
         
-        self.createModels();
+        
         self.experience  = collections.deque(maxlen=MEMORY_SIZE)
         self.last_ex = collections.deque(maxlen=MEMORY_SIZE);
         self.fout = open(os.path.join(DATA_DIR,"rl-network-results.tsv"),"wb")
@@ -61,29 +62,32 @@ class ForexAgent:
         
         print ('print model input shape : ',shape);
         model = Sequential()
-        model.add(CuDNNLSTM(600,input_shape=shape ,return_sequences=True ))#, dropout=0.2, recurrent_dropout=0.2))
-        model.add(CuDNNLSTM(600,return_sequences=True ))
-        model.add(CuDNNLSTM(600 ,return_sequences=True ))
-        model.add(CuDNNLSTM(600 ))
+        model.add(CuDNNLSTM(600,input_shape=shape ))#,return_sequences=True ))#, dropout=0.2, recurrent_dropout=0.2))
+        #model.add(CuDNNLSTM(600,return_sequences=True ))
+        #model.add(CuDNNLSTM(600 ,return_sequences=True ))
+        #model.add(CuDNNLSTM(600 ))
        
         
         model.add(Dense(NUM_ACTIONS,kernel_initializer="normal"))
         model.compile(optimizer=Adam(lr=1e-6),loss="mse")
         model.summary();
         return model;
-
+        
 
     def createModels(self):
         self.model = self.buildModel();
         self.model1 = self.buildModel();
+        
         self.copyModelWeights(self.model,self.model1);
         test = np.zeros((100,6));
         
-        print("input ",test)
+        
         out = self.model.predict(np.expand_dims(test, axis=0));
         print("out of model like : ",out)
         out = self.model.predict(np.expand_dims(test, axis=0));
         print("out of model like : ",out)
+        out1 = self.model1.predict(np.expand_dims(test, axis=0));
+        print("out of model1 like :  " , out1)
 
     def get_next_batch(self,experience,num_actions,gamma,batch_size):
         
@@ -105,6 +109,11 @@ class ForexAgent:
     def copyModelWeights(self,modelSource,model1Target):
         weights = modelSource.get_weights();
         model1Target.set_weights(weights);
+        
+    
+  
+        
+
 
 
 
@@ -122,6 +131,7 @@ class ForexAgent:
     
 
     def mainLoop(self):
+        self.createModels();
         e = 0;
         while True:
             e = e+1 ;
@@ -152,9 +162,11 @@ class ForexAgent:
                 else :
                     if np.random.rand() <= self.epsilon:
                         a_t = self.env.get_action_sample();
+                        #print("random action ",a_t)
                     else:
                         q = self.model.predict(np.expand_dims(s_t, axis=0))[0]
                         a_t = np.argmax(q)
+                        #print("predicted action ",a_t)
 
                 #apply action , get reward
                 s_t , r_t , game_over ,_= self.env.step(a_t)
@@ -166,15 +178,24 @@ class ForexAgent:
                 self.experience.append((s_tm1,a_t,r_t,s_t,game_over))
                 if(r_t > 0 and game_over):
                     self.last_ex.append((s_tm1,a_t,r_t,s_t,game_over))
+                
 
-                if len(self.last_ex) > NUM_EPOCHS_OBSERVE :
+
+                if len(self.last_ex) >= NUM_EPOCHS_OBSERVE :
+                    #print("entering training")
                     # finished observing , now start training
                     # get next batch
                     X,Y = self.get_next_batch(self.experience,NUM_ACTIONS,GAMMA,BATCH_SIZE)
+                    #print("getting batch , y ",Y)
                     loss += self.model.train_on_batch(X,Y)
-                    X,Y = self.get_next_batch(self.last_ex,NUM_ACTIONS,GAMMA,BATCH_SIZE)
-                    loss += self.model.train_on_batch(X,Y)
-                    self.model1.train_on_batch(X,Y)
+                    #print("trained first model loss ",loss)
+                    #X,Y = self.get_next_batch(self.last_ex,NUM_ACTIONS,GAMMA,BATCH_SIZE)
+                    #print("get win batch y ",Y)
+                    #loss += self.model.train_on_batch(X,Y)
+                    #print("trained first model on win ",loss)
+                    #self.model1.train_on_batch(X,Y)
+                    #print("trained second model on win ",loss)
+                    #print("finished training ok");
             
             
             #reduce epsilon gradually

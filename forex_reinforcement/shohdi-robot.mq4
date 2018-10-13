@@ -1271,7 +1271,7 @@ void OnTick()
             }
             
 
-            res=WebRequest("GET",myUrl,cookie,NULL,59000,post,0,result,headers);
+            res=WebRequest("GET",myUrl,cookie,NULL,590000,post,0,result,headers);
             started = true;
             string webRet = "";
 
