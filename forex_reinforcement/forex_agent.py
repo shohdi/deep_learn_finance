@@ -90,7 +90,7 @@ class ForexAgent:
         model1 = self.model1;
         batch_indices = np.random.randint(low=0,high=len(experience),size=batch_size)
         batch = [experience[i] for i in batch_indices]
-        X = np.zeros((batch_size,80,80,4))
+        X = np.zeros((batch_size,100,6))
         Y = np.zeros((batch_size,num_actions))
         for i in range(len(batch)):
             s_t,a_t,r_t,s_tp1,game_over = batch[i]
