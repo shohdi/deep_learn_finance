@@ -28,7 +28,7 @@ GAMMA = 0.99 # decay rate of past observations
 INITIAL_EPSILON = 1 # starting value of epsilon
 FINAL_EPSILON = 0.0001 # final value of epsilon
 MEMORY_SIZE = 750000 # number of previous transitions to remember
-NUM_EPOCHS_OBSERVE = 1000
+NUM_EPOCHS_OBSERVE = 100
 NUM_EPOCHS = 100000
 
 BATCH_SIZE = 32
@@ -77,9 +77,12 @@ class ForexAgent:
         self.model = self.buildModel();
         self.model1 = self.buildModel();
         self.copyModelWeights(self.model,self.model1);
-        test = np.zeros((1,100,6));
+        test = np.zeros((100,6));
+        
         print("input ",test)
-        out = self.model.predict(test);
+        out = self.model.predict(np.expand_dims(test, axis=0));
+        print("out of model like : ",out)
+        out = self.model.predict(np.expand_dims(test, axis=0));
         print("out of model like : ",out)
 
     def get_next_batch(self,experience,model,num_actions,gamma,batch_size):
@@ -92,8 +95,8 @@ class ForexAgent:
         for i in range(len(batch)):
             s_t,a_t,r_t,s_tp1,game_over = batch[i]
             X[i] = s_t
-            Y[i] = model.predict(s_t)[0]
-            Q_sa = np.max(model1.predict(s_tp1)[0])
+            Y[i] = model.predict(np.expand_dims(s_t, axis=0))[0]
+            Q_sa = np.max(model1.predict(np.expand_dims(s_tp1, axis=0))[0])
             if game_over:
                 Y[i,a_t] = r_t
             else:
@@ -151,7 +154,7 @@ class ForexAgent:
                     if np.random.rand() <= self.epsilon:
                         a_t = self.env.get_action_sample();
                     else:
-                        q = self.model.predict(s_t)[0]
+                        q = self.model.predict(np.expand_dims(s_t, axis=0))[0]
                         a_t = np.argmax(q)
 
                 #apply action , get reward
