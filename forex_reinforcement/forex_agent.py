@@ -23,7 +23,7 @@ from keras.losses import mean_squared_error
 
 #initialize parameters
 DATA_DIR= os.path.join(".","data")
-NUM_ACTIONS = 4 #number of valid actions (left , stay , right)
+NUM_ACTIONS = 4 #number of valid actions (0 do nothing , 1 trade down , 2 trade up , 3 close trade)
 GAMMA = 0.99 # decay rate of past observations
 INITIAL_EPSILON = 1 # starting value of epsilon
 FINAL_EPSILON = 0.0001 # final value of epsilon
@@ -67,7 +67,7 @@ class ForexAgent:
         model.add(CuDNNLSTM(600 ))
        
         
-        model.add(Dense(4,kernel_initializer="normal"))
+        model.add(Dense(NUM_ACTIONS,kernel_initializer="normal"))
         model.compile(optimizer=Adam(lr=1e-6),loss="mse")
         model.summary();
         return model;
@@ -85,9 +85,8 @@ class ForexAgent:
         out = self.model.predict(np.expand_dims(test, axis=0));
         print("out of model like : ",out)
 
-    def get_next_batch(self,experience,model,num_actions,gamma,batch_size):
-        model = self.model;
-        model1 = self.model1;
+    def get_next_batch(self,experience,num_actions,gamma,batch_size):
+        
         batch_indices = np.random.randint(low=0,high=len(experience),size=batch_size)
         batch = [experience[i] for i in batch_indices]
         X = np.zeros((batch_size,100,6))
@@ -95,8 +94,8 @@ class ForexAgent:
         for i in range(len(batch)):
             s_t,a_t,r_t,s_tp1,game_over = batch[i]
             X[i] = s_t
-            Y[i] = model.predict(np.expand_dims(s_t, axis=0))[0]
-            Q_sa = np.max(model1.predict(np.expand_dims(s_tp1, axis=0))[0])
+            Y[i] = self.model.predict(np.expand_dims(s_t, axis=0))[0]
+            Q_sa = np.max(self.model1.predict(np.expand_dims(s_tp1, axis=0))[0])
             if game_over:
                 Y[i,a_t] = r_t
             else:
@@ -171,9 +170,9 @@ class ForexAgent:
                 if len(self.last_ex) > NUM_EPOCHS_OBSERVE :
                     # finished observing , now start training
                     # get next batch
-                    X,Y = self.get_next_batch(self.experience,self.model,NUM_ACTIONS,GAMMA,BATCH_SIZE)
+                    X,Y = self.get_next_batch(self.experience,NUM_ACTIONS,GAMMA,BATCH_SIZE)
                     loss += self.model.train_on_batch(X,Y)
-                    X,Y = self.get_next_batch(self.last_ex,self.model,NUM_ACTIONS,GAMMA,BATCH_SIZE)
+                    X,Y = self.get_next_batch(self.last_ex,NUM_ACTIONS,GAMMA,BATCH_SIZE)
                     loss += self.model.train_on_batch(X,Y)
                     self.model1.train_on_batch(X,Y)
             
