@@ -6,7 +6,14 @@ from forex_agent import ForexAgent
 from forex_environment import ForexEnvironment
 import threading;
 
+import logging
+
+log = logging.getLogger('werkzeug')
+log.disabled = True
+
 app = Flask(__name__)
+
+app.logger.disabled = True
 
 myAgent = ForexAgent(ForexEnvironment());
 
