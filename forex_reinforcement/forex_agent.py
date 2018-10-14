@@ -165,11 +165,11 @@ class ForexAgent:
                 
                 if np.random.rand() <= self.epsilon:
                     a_t = self.env.get_action_sample();
-                    print("random action ",a_t)
+                    #print("random action ",a_t)
                 else:
                     q = self.model.predict(np.expand_dims(s_t, axis=0))[0]
                     a_t = np.argmax(q)
-                    print("predicted action ",a_t)
+                    #print("predicted action ",a_t)
 
                 #apply action , get reward
                 s_t , r_t , game_over ,_= self.env.step(a_t)
@@ -185,7 +185,7 @@ class ForexAgent:
 
 
                 if len(self.last_ex) >= NUM_EPOCHS_OBSERVE :
-                    print("entering training")
+                    #print("entering training")
                     # finished observing , now start training
                     # get next batch
                     X,Y = self.get_next_batch(self.experience,NUM_ACTIONS,GAMMA,BATCH_SIZE)
