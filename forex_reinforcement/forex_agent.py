@@ -26,15 +26,15 @@ from keras.losses import mean_squared_error
 DATA_DIR= os.path.join(".","data")
 NUM_ACTIONS = 4 #number of valid actions (0 do nothing , 1 trade down , 2 trade up , 3 close trade)
 GAMMA = 0.99 # decay rate of past observations
-INITIAL_EPSILON = 1 # starting value of epsilon
+INITIAL_EPSILON = 0.7 # starting value of epsilon
 FINAL_EPSILON = 0.0001 # final value of epsilon
-MEMORY_SIZE = 750000 # number of previous transitions to remember
+MEMORY_SIZE = 50000 # number of previous transitions to remember
 NUM_EPOCHS_OBSERVE = 100
-NUM_EPOCHS = 100000
+NUM_EPOCHS = 5000
 
 BATCH_SIZE = 32
 
-ITERATE_COPY_Q = 2000;
+ITERATE_COPY_Q = 1000;
 
 
 
@@ -50,7 +50,7 @@ class ForexAgent:
         
         
         self.experience  = collections.deque(maxlen=MEMORY_SIZE)
-        self.last_ex = collections.deque(maxlen=MEMORY_SIZE);
+        self.last_ex = collections.deque(maxlen=NUM_EPOCHS_OBSERVE+1);
         self.fout = open(os.path.join(DATA_DIR,"rl-network-results.tsv"),"wb")
         self.num_games,self.num_wins = 0,0
         self.epsilon = INITIAL_EPSILON
@@ -71,6 +71,7 @@ class ForexAgent:
         model.add(Dense(NUM_ACTIONS,kernel_initializer="normal"))
         model.compile(optimizer=Adam(lr=1e-6),loss="mse")
         model.summary();
+        model.load_weights(os.path.join(DATA_DIR,"rl-network_w.h5"))
         return model;
         
 
@@ -99,7 +100,11 @@ class ForexAgent:
             s_t,a_t,r_t,s_tp1,game_over = batch[i]
             X[i] = s_t
             Y[i] = self.model.predict(np.expand_dims(s_t, axis=0))[0]
-            Q_sa = np.max(self.model1.predict(np.expand_dims(s_tp1, axis=0))[0])
+            q_next = self.model.predict(np.expand_dims(s_tp1, axis=0))[0];
+            a_next = np.argmax(q_next);
+
+            
+            Q_sa = self.model1.predict(np.expand_dims(s_tp1, axis=0))[0,a_next];
             if game_over:
                 Y[i,a_t] = r_t
             else:
@@ -157,16 +162,14 @@ class ForexAgent:
                 s_tm1 = s_t
 
                 #next action
-                if len(self.last_ex) < NUM_EPOCHS_OBSERVE:
+                
+                if np.random.rand() <= self.epsilon:
                     a_t = self.env.get_action_sample();
-                else :
-                    if np.random.rand() <= self.epsilon:
-                        a_t = self.env.get_action_sample();
-                        #print("random action ",a_t)
-                    else:
-                        q = self.model.predict(np.expand_dims(s_t, axis=0))[0]
-                        a_t = np.argmax(q)
-                        #print("predicted action ",a_t)
+                    print("random action ",a_t)
+                else:
+                    q = self.model.predict(np.expand_dims(s_t, axis=0))[0]
+                    a_t = np.argmax(q)
+                    print("predicted action ",a_t)
 
                 #apply action , get reward
                 s_t , r_t , game_over ,_= self.env.step(a_t)
@@ -176,13 +179,13 @@ class ForexAgent:
                     self.num_wins +=1
                 #store experience
                 self.experience.append((s_tm1,a_t,r_t,s_t,game_over))
-                if(r_t > 0 and game_over):
+                if(r_t > 0 and game_over ):
                     self.last_ex.append((s_tm1,a_t,r_t,s_t,game_over))
                 
 
 
                 if len(self.last_ex) >= NUM_EPOCHS_OBSERVE :
-                    #print("entering training")
+                    print("entering training")
                     # finished observing , now start training
                     # get next batch
                     X,Y = self.get_next_batch(self.experience,NUM_ACTIONS,GAMMA,BATCH_SIZE)
@@ -202,8 +205,9 @@ class ForexAgent:
             if self.epsilon > FINAL_EPSILON :
                 self.epsilon -= ((INITIAL_EPSILON - FINAL_EPSILON)/NUM_EPOCHS)
             
-            print("Epoch {:04d}/{:d} | loss {:.5f} | Win count {:d}".format(e + 1,NUM_EPOCHS,loss,self.num_wins))
-            if e % 100 == 0 :
+            print("Epoch {:04d}/{:d} | loss {:.5f} | Win count {:d} | current epsilon {:.5f}".format(e + 1,NUM_EPOCHS,loss,self.num_wins,self.epsilon))
+            if (e % 100 == 0) and e > 0 :
+                print("saving ... ",e)
                 self.model.save(os.path.join(DATA_DIR,"rl-network.h5"),overwrite=True)
                 self.model.save_weights(os.path.join(DATA_DIR,"rl-network_w.h5"),overwrite=True)
             
