@@ -21,16 +21,17 @@ from keras.layers.recurrent import LSTM
 from keras.layers import ConvLSTM2D
 from keras.layers.cudnn_recurrent import CuDNNLSTM
 from keras.losses import mean_squared_error
+import pickle
 
 #initialize parameters
 DATA_DIR= os.path.join(".","data")
 NUM_ACTIONS = 4 #number of valid actions (0 do nothing , 1 trade down , 2 trade up , 3 close trade)
 GAMMA = 0.99 # decay rate of past observations
-INITIAL_EPSILON = 0.7 # starting value of epsilon
-FINAL_EPSILON = 0.0001 # final value of epsilon
+INITIAL_EPSILON = 1 # starting value of epsilon
+FINAL_EPSILON = 0.001 # final value of epsilon
 MEMORY_SIZE = 50000 # number of previous transitions to remember
 NUM_EPOCHS_OBSERVE = 100
-NUM_EPOCHS = 5000
+NUM_EPOCHS = 10000
 
 BATCH_SIZE = 32
 
@@ -49,7 +50,17 @@ class ForexAgent:
         self._started = False;
         
         
-        self.experience  = collections.deque(maxlen=MEMORY_SIZE)
+        expExists = os.path.isfile(os.path.join(DATA_DIR,"rl-network_exp.h5"));
+        self.experience = None;
+        if(expExists):
+            print('found experience file');
+            myFin = open(os.path.join(DATA_DIR,"rl-network_exp.h5"),'rb');
+            self.experience = pickle.load(myFin);
+            myFin.close();
+            print('end loading experience file');
+        else:
+            self.experience  = collections.deque(maxlen=MEMORY_SIZE)
+
         self.last_ex = collections.deque(maxlen=NUM_EPOCHS_OBSERVE+1);
         self.fout = open(os.path.join(DATA_DIR,"rl-network-results.tsv"),"wb")
         self.num_games,self.num_wins = 0,0
@@ -71,7 +82,11 @@ class ForexAgent:
         model.add(Dense(NUM_ACTIONS,kernel_initializer="normal"))
         model.compile(optimizer=Adam(lr=1e-6),loss="mse")
         model.summary();
-        model.load_weights(os.path.join(DATA_DIR,"rl-network_w.h5"))
+        modelExists = os.path.isfile(os.path.join(DATA_DIR,"rl-network_w.h5"));
+        if modelExists:
+            print('found model file , loading ...');
+            model.load_weights(os.path.join(DATA_DIR,"rl-network_w.h5"))
+            print('end found model file , loading ...');
         return model;
         
 
@@ -210,6 +225,11 @@ class ForexAgent:
                 print("saving ... ",e)
                 self.model.save(os.path.join(DATA_DIR,"rl-network.h5"),overwrite=True)
                 self.model.save_weights(os.path.join(DATA_DIR,"rl-network_w.h5"),overwrite=True)
+                print("saving experience !!!")
+                myFout = open(os.path.join(DATA_DIR,"rl-network_exp.h5"),'wb');
+                pickle.dump(self.experience,myFout);
+                myFout.close();
+                print("finished saving experience")
             
 
         self.fout.close()
