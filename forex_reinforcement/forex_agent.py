@@ -154,6 +154,7 @@ class ForexAgent:
     def mainLoop(self):
         self.createModels();
         e = 0;
+        state_count = 0;
         while True:
             e = e+1 ;
             #print(self.env.get_action_sample());
@@ -190,7 +191,7 @@ class ForexAgent:
 
                 #apply action , get reward
                 s_t , r_t , game_over ,_= self.env.step(a_t)
-                
+                state_count+=1
                 #if reward , increment num_wins
                 if r_t > 0 and game_over :
                     self.num_wins +=1
@@ -205,9 +206,10 @@ class ForexAgent:
                     #print("entering training")
                     # finished observing , now start training
                     # get next batch
-                    X,Y = self.get_next_batch(self.experience,NUM_ACTIONS,GAMMA,BATCH_SIZE)
-                    #print("getting batch , y ",Y)
-                    loss += self.model.train_on_batch(X,Y)
+                    if (state_count % (BATCH_SIZE // 2)) == 0:
+                        X,Y = self.get_next_batch(self.experience,NUM_ACTIONS,GAMMA,BATCH_SIZE)
+                        #print("getting batch , y ",Y)
+                        loss += self.model.train_on_batch(X,Y)
                     #print("trained first model loss ",loss)
                     #X,Y = self.get_next_batch(self.last_ex,NUM_ACTIONS,GAMMA,BATCH_SIZE)
                     #print("get win batch y ",Y)
