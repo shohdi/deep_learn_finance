@@ -202,7 +202,7 @@ class ForexAgent:
                 
 
 
-                if len(self.last_ex) >= NUM_EPOCHS_OBSERVE or len(self.experience) >= (NUM_EPOCHS_OBSERVE * 10) :
+                if len(self.last_ex) >= NUM_EPOCHS_OBSERVE or len(self.experience) >= (NUM_EPOCHS_OBSERVE * 10 * 30) :
                     #print("entering training")
                     # finished observing , now start training
                     # get next batch
