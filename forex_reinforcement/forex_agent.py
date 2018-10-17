@@ -165,7 +165,8 @@ class ForexAgent:
             '''
             if((e % ITERATE_COPY_Q) == 0):
                 self.copyModelWeights(self.model,self.model1);
-            self.env.step(0);
+            #no need for reset
+            #self.env.step(0);
 
             loss=0.0
             #get first state
