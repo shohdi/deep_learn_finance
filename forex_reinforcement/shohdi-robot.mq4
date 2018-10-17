@@ -1290,6 +1290,8 @@ void OnTick()
                //do trade in case of trade
 
                int tradeTypeAgent = StrToInteger(webRet);
+               
+               Print("action returned 0 - wait  1 - down 2 - up 3 - close ",tradeTypeAgent,"  action time ",TimeToStr(TimeCurrent()));
 
                bool orderIsOpen = false;
 
@@ -1536,10 +1538,12 @@ void OnTick()
       ArrayResize(closes,longPeriod);
       ArrayResize(opens,longPeriod);
       
-      CopyHigh(_Symbol,_Period,0,longPeriod,highs);
-      CopyClose(_Symbol,_Period,0,longPeriod,closes);
-      CopyLow(_Symbol,_Period,0,longPeriod,lows);
-      CopyOpen(_Symbol,_Period,0,longPeriod,opens);
+      int per = PERIOD_M1;
+      
+      CopyHigh(_Symbol,per,0,longPeriod,highs);
+      CopyClose(_Symbol,per,0,longPeriod,closes);
+      CopyLow(_Symbol,per,0,longPeriod,lows);
+      CopyOpen(_Symbol,per,0,longPeriod,opens);
       string strRet = "";
       for(int i=0;i<longPeriod;i++)
       {
