@@ -29,9 +29,9 @@ NUM_ACTIONS = 4 #number of valid actions (0 do nothing , 1 trade down , 2 trade 
 GAMMA = 0.99 # decay rate of past observations
 INITIAL_EPSILON = 1 # starting value of epsilon
 FINAL_EPSILON = 0.001 # final value of epsilon
-MEMORY_SIZE = 50000 # number of previous transitions to remember
+MEMORY_SIZE = 500000 # number of previous transitions to remember
 NUM_EPOCHS_OBSERVE = 100
-NUM_EPOCHS = 7899
+NUM_EPOCHS = 150000
 
 BATCH_SIZE = 100
 
