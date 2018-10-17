@@ -19,3 +19,7 @@ ntlsm_one_day/**/*.h5
 
 
 
+forex_reinforcement/.iptable_fix.txt.swp
+forex_reinforcement/.run_help.txt.swp
+forex_reinforcement/run_help.txt.save
+forex_reinforcement/.vscode/settings.json

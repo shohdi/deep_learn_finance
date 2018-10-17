@@ -31,9 +31,9 @@ INITIAL_EPSILON = 1 # starting value of epsilon
 FINAL_EPSILON = 0.001 # final value of epsilon
 MEMORY_SIZE = 50000 # number of previous transitions to remember
 NUM_EPOCHS_OBSERVE = 100
-NUM_EPOCHS = 10000
+NUM_EPOCHS = 7899
 
-BATCH_SIZE = 32
+BATCH_SIZE = 100
 
 ITERATE_COPY_Q = 1000;
 
@@ -58,6 +58,7 @@ class ForexAgent:
             self.experience = pickle.load(myFin);
             myFin.close();
             print('end loading experience file');
+            print('exp length ',len(self.experience));
         else:
             self.experience  = collections.deque(maxlen=MEMORY_SIZE)
 
@@ -199,7 +200,7 @@ class ForexAgent:
                 
 
 
-                if len(self.last_ex) >= NUM_EPOCHS_OBSERVE :
+                if len(self.last_ex) >= NUM_EPOCHS_OBSERVE or len(self.experience) >= (NUM_EPOCHS_OBSERVE * 10) :
                     #print("entering training")
                     # finished observing , now start training
                     # get next batch
