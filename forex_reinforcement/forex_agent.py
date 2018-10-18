@@ -31,7 +31,7 @@ INITIAL_EPSILON = 1 # starting value of epsilon
 FINAL_EPSILON = 0.001 # final value of epsilon
 MEMORY_SIZE = 500000 # number of previous transitions to remember
 NUM_EPOCHS_OBSERVE = 100
-NUM_EPOCHS = 150000
+NUM_EPOCHS = 10000
 
 BATCH_SIZE = 100
 
