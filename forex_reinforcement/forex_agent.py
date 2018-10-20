@@ -28,10 +28,10 @@ DATA_DIR= os.path.join(".","data")
 NUM_ACTIONS = 4 #number of valid actions (0 do nothing , 1 trade down , 2 trade up , 3 close trade)
 GAMMA = 0.99 # decay rate of past observations
 INITIAL_EPSILON = 1 # starting value of epsilon
-FINAL_EPSILON = 0.001 # final value of epsilon
-MEMORY_SIZE = 500000 # number of previous transitions to remember
+FINAL_EPSILON = 0.1 # final value of epsilon
+MEMORY_SIZE = 5000000 # number of previous transitions to remember
 NUM_EPOCHS_OBSERVE = 100
-NUM_EPOCHS = 10000
+NUM_EPOCHS = 25000
 
 BATCH_SIZE = 100
 
@@ -74,8 +74,8 @@ class ForexAgent:
         
         print ('print model input shape : ',shape);
         model = Sequential()
-        model.add(CuDNNLSTM(600,input_shape=shape ))#,return_sequences=True ))#, dropout=0.2, recurrent_dropout=0.2))
-        #model.add(CuDNNLSTM(600,return_sequences=True ))
+        model.add(CuDNNLSTM(600,input_shape=shape ,return_sequences=True ))#, dropout=0.2, recurrent_dropout=0.2))
+        model.add(CuDNNLSTM(600 ))
         #model.add(CuDNNLSTM(600 ,return_sequences=True ))
         #model.add(CuDNNLSTM(600 ))
        
@@ -176,12 +176,13 @@ class ForexAgent:
             
             s_tm1 = s_t
             a_t,r_t = None,None
+            randValue = np.random.rand()
             while not game_over:
                 s_tm1 = s_t
 
                 #next action
                 
-                if np.random.rand() <= self.epsilon:
+                if  randValue <= self.epsilon:
                     a_t = self.env.get_action_sample();
                     #print("random action ",a_t)
                 else:
