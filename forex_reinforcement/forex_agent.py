@@ -23,6 +23,7 @@ from keras.layers.cudnn_recurrent import CuDNNLSTM
 from keras.losses import mean_squared_error
 import pickle
 
+IS_TEST_RUN = False
 #initialize parameters
 DATA_DIR= os.path.join(".","data")
 NUM_ACTIONS = 4 #number of valid actions (0 do nothing , 1 trade down , 2 trade up , 3 close trade)
@@ -65,7 +66,10 @@ class ForexAgent:
         self.last_ex = collections.deque(maxlen=NUM_EPOCHS_OBSERVE+1);
         self.fout = open(os.path.join(DATA_DIR,"rl-network-results.tsv"),"wb")
         self.num_games,self.num_wins = 0,0
-        self.epsilon = INITIAL_EPSILON
+        if(not IS_TEST_RUN):
+            self.epsilon = INITIAL_EPSILON
+        else:
+            self.epsilon = 0.0;
 
 
     def buildModel(self):
@@ -203,7 +207,7 @@ class ForexAgent:
                 
 
 
-                if len(self.last_ex) >= NUM_EPOCHS_OBSERVE or len(self.experience) >= (NUM_EPOCHS_OBSERVE * 10 * 30) :
+                if (not IS_TEST_RUN) and   (len(self.last_ex) >= NUM_EPOCHS_OBSERVE or len(self.experience) >= (NUM_EPOCHS_OBSERVE * 10 * 30) ):
                     #print("entering training")
                     # finished observing , now start training
                     # get next batch
@@ -226,7 +230,7 @@ class ForexAgent:
                 self.epsilon -= ((INITIAL_EPSILON - FINAL_EPSILON)/NUM_EPOCHS)
             
             print("Epoch {:04d}/{:d} | loss {:.5f} | Win count {:d} | current epsilon {:.5f}".format(e + 1,NUM_EPOCHS,loss,self.num_wins,self.epsilon))
-            if (e % 100 == 0) and e > 0 :
+            if  (not IS_TEST_RUN) and ((e % 100 == 0) and e > 0) :
                 print("saving ... ",e)
                 self.model.save(os.path.join(DATA_DIR,"rl-network.h5"),overwrite=True)
                 self.model.save_weights(os.path.join(DATA_DIR,"rl-network_w.h5"),overwrite=True)
@@ -238,7 +242,8 @@ class ForexAgent:
             
 
         self.fout.close()
-        self.model.save(os.path.join(DATA_DIR,"rl-network.h5"),overwrite=True)
-        self.model.save_weights(os.path.join(DATA_DIR,"rl-network_w.h5"),overwrite=True)
+        if(not IS_TEST_RUN):
+            self.model.save(os.path.join(DATA_DIR,"rl-network.h5"),overwrite=True)
+            self.model.save_weights(os.path.join(DATA_DIR,"rl-network_w.h5"),overwrite=True)
 
         
