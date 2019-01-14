@@ -535,6 +535,9 @@ bool openTrade (int type)
       takeProfit = 0;
    }
    
+   stopLoss = 0;
+   takeProfit = 0;
+   
    int ticket=OrderSend(Symbol(),setType,volume,close,5,stopLoss,takeProfit,title,EXPERT_MAGIC,0,arrowColor);
    
     if(ticket>=0)
@@ -1108,6 +1111,16 @@ int OnInit()
    printf("ACCOUNT_MARGIN_SO_SO = %G",AccountInfoDouble(ACCOUNT_MARGIN_SO_SO));
    printf("ACCOUNT_LEVERAGE = %G",AccountInfoInteger(ACCOUNT_LEVERAGE));
    printf("lot size : %G" , SymbolInfoDouble(_Symbol,SYMBOL_TRADE_CONTRACT_SIZE));
+   double pointSize = MarketInfo(_Symbol,MODE_POINT);
+   double spreadSize = MarketInfo(_Symbol,MODE_SPREAD);
+   double bid = MarketInfo(_Symbol,MODE_BID);
+   double ask = MarketInfo(_Symbol,MODE_ASK);
+   printf("point size : %G" , pointSize );
+   printf("spread : %G " , spreadSize);
+   printf("spread price : %G",spreadSize * pointSize);
+   printf("bid : %G",bid);
+   printf("ask : %G",ask);
+   
       
       
 //---
@@ -1167,6 +1180,7 @@ void OnDeinit(const int reason)
 void OnTick()
   {
 //--- 
+         
         // SymbolInfoTick(_Symbol,currentTick);
          
          //Print("new Tick" + currentTick.time);
@@ -1177,15 +1191,18 @@ void OnTick()
          
          
          
-         if(lastCandle.Close1 == -1)
+         if(lastCandle1m.Close1 == -1)
          {
+            Print("first candle ");
             lastCandle = currentCandle;
             lastCandle1m = currentCandle1m;
             return;
          }
          
+        
          if(currentCandle1m.Date != lastCandle1m.Date)
          {
+            
             //one minute candle change
             onEnvStep();
             
@@ -1361,7 +1378,7 @@ void OnTick()
 
                      {
 
-                        tradeType = -1;
+                        tradeType = 0;
 
                      }
 
@@ -1398,8 +1415,26 @@ void OnTick()
                   if(orderIsOpen && tradeTypeAgent == 3)
 
                   {
+                  
+                     //before closing check difference
+                     //double bid = MarketInfo(_Symbol,MODE_BID);
+                     //double point = MarketInfo(_Symbol,MODE_POINT);
+                     //double orderOpen = OrderOpenPrice();
+                     //double diff = bid-OrderOpenPrice();
+                     //if(diff <0)
+                     //{
+                     //   diff = -1 * diff;
+                     //}
+                     
+                     //minimum is 100 dips
+                     //double minVal = point * 100;
+                     
+                     bool closeRes = false;
+                     //if(diff >= minVal)
+                     //{
 
-                     bool closeRes = OrderClose(OrderTicket(),OrderLots(),OrderClosePrice(),5,clrNONE);
+                       closeRes = OrderClose(OrderTicket(),OrderLots(),OrderClosePrice(),5,clrNONE);
+                     //}
 
                       if(getOpenedOrderNo() == 0)
 
@@ -1515,14 +1550,18 @@ void OnTick()
   
   double getReward()
   {
-    double balance = AccountInfoDouble(ACCOUNT_BALANCE);
-                  double amountToLoss = balance * percentFromCapital;
-                  if(amountToLoss < minLossValue)
-                  {
-                     amountToLoss = minLossValue;
-                  }
-                 double reward = (OrderProfit() / (amountToLoss* riskToProfit));
-                  reward = OrderProfit();
+    //double balance = AccountInfoDouble(ACCOUNT_BALANCE);
+      //            double amountToLoss = balance * percentFromCapital;
+        //          if(amountToLoss < minLossValue)
+          //        {
+            //         amountToLoss = minLossValue;
+              //    }
+               //  double reward = (OrderProfit() / (amountToLoss* riskToProfit));
+                 
+                double lotSize = SymbolInfoDouble(_Symbol,SYMBOL_TRADE_CONTRACT_SIZE);
+                double orderSize = OrderLots() * lotSize;
+                double reward = (OrderProfit()/orderSize) * 100;
+                  
      return reward;        
                
   }

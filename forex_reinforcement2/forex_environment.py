@@ -71,8 +71,9 @@ class ForexEnvironment:
 
     def get_action_sample(self):
         ret  = int( math.floor( (np.random.random() * 4)));
+        
         if(len(self._states_coll) > 0):
-            if(self._last_state[0,5] > 0 or self._last_state[0,4] > 0):
+            if(self._last_state[5] > 0 or self._last_state[4] > 0):
                 self._myRandomFrame = self._myRandomFrame + 1;
                 ret = int( math.floor( (np.random.random() * 15)));
                 '''
@@ -88,9 +89,9 @@ class ForexEnvironment:
                 if(self._last_im_reward > 1):
                     ret = 3;
                 elif(self._myRandomFrame > 10):
-                    if(self._last_state[0,4] > 0 and self._last_state[0,3] > self._last_state[0,4]):
+                    if(self._last_state[4] > 0 and self._last_state[3] > self._last_state[4]):
                         ret = 3;
-                    elif(self._last_state[0,5] > 0 and self._last_state[0,3] < self._last_state[0,5]):
+                    elif(self._last_state[5] > 0 and self._last_state[3] < self._last_state[5]):
                         ret = 3;
                 
 

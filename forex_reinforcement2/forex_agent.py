@@ -26,13 +26,13 @@ import pickle
 IS_TEST_RUN = False
 #initialize parameters
 DATA_DIR= os.path.join(".","data")
-NUM_ACTIONS = 3 #number of valid actions (0 do nothing , 1 trade up , 2 close )
+NUM_ACTIONS = 4 #number of valid actions (0 do nothing , 1 trade down , 2 trade up , 3 close trade)
 GAMMA = 0.99 # decay rate of past observations
 INITIAL_EPSILON = 1 # starting value of epsilon
-FINAL_EPSILON = 0.1 # final value of epsilon
+FINAL_EPSILON = 0.01 # final value of epsilon
 MEMORY_SIZE = 5000000 # number of previous transitions to remember
 NUM_EPOCHS_OBSERVE = 100
-NUM_EPOCHS = 25000
+NUM_EPOCHS = 259200
 
 BATCH_SIZE = 100
 
@@ -63,7 +63,7 @@ class ForexAgent:
         else:
             self.experience  = collections.deque(maxlen=MEMORY_SIZE)
 
-        self.last_ex = collections.deque(maxlen=NUM_EPOCHS_OBSERVE+1);
+        self.last_ex = collections.deque(maxlen=(NUM_EPOCHS_OBSERVE*3));
         self.fout = open(os.path.join(DATA_DIR,"rl-network-results.tsv"),"wb")
         self.num_games,self.num_wins = 0,0
         if(not IS_TEST_RUN):
@@ -73,18 +73,28 @@ class ForexAgent:
 
 
     def buildModel(self):
-        shape = self.env._last_state.shape;
-        
-        
+        shape = (60,);
         print ('print model input shape : ',shape);
+
         model = Sequential()
-        model.add(CuDNNLSTM(128,input_shape=shape ,return_sequences=True ))#, dropout=0.2, recurrent_dropout=0.2))
-        model.add(CuDNNLSTM(128 ))
+        model.add(Dense(128,input_shape=shape));
+        model.add(Activation('relu'));
+        model.add(Dense(128));
+        model.add(Activation('relu'));
+        model.add(Dense(128));
+        model.add(Activation('relu'));
+        model.add(Dropout(0.25));
+        model.add(Dense(NUM_ACTIONS,kernel_initializer="normal"))
+        
+        
+        #model = Sequential()
+        #model.add(CuDNNLSTM(600,input_shape=shape ,return_sequences=True ))#, dropout=0.2, recurrent_dropout=0.2))
+        #model.add(CuDNNLSTM(600 ))
         #model.add(CuDNNLSTM(600 ,return_sequences=True ))
         #model.add(CuDNNLSTM(600 ))
        
         
-        model.add(Dense(NUM_ACTIONS,kernel_initializer="normal"))
+        #model.add(Dense(NUM_ACTIONS,kernel_initializer="normal"))
         model.compile(optimizer=Adam(lr=1e-6),loss="mse")
         model.summary();
         modelExists = os.path.isfile(os.path.join(DATA_DIR,"rl-network_w.h5"));
@@ -100,7 +110,7 @@ class ForexAgent:
         self.model1 = self.buildModel();
         
         self.copyModelWeights(self.model,self.model1);
-        test = np.zeros((100,6));
+        test = np.zeros((60,));
         
         
         out = self.model.predict(np.expand_dims(test, axis=0));
@@ -114,7 +124,7 @@ class ForexAgent:
         
         batch_indices = np.random.randint(low=0,high=len(experience),size=batch_size)
         batch = [experience[i] for i in batch_indices]
-        X = np.zeros((batch_size,100,6))
+        X = np.zeros((batch_size,60,))
         Y = np.zeros((batch_size,num_actions))
         for i in range(len(batch)):
             s_t,a_t,r_t,s_tp1,game_over = batch[i]
@@ -159,6 +169,7 @@ class ForexAgent:
         self.createModels();
         e = 0;
         state_count = 0;
+        
         while True:
             e = e+1 ;
             #print(self.env.get_action_sample());
@@ -226,10 +237,11 @@ class ForexAgent:
             
             
             #reduce epsilon gradually
-            if self.epsilon > FINAL_EPSILON :
-                self.epsilon -= ((INITIAL_EPSILON - FINAL_EPSILON)/NUM_EPOCHS)
+                
+                if self.epsilon > FINAL_EPSILON and len(self.last_ex) >= (NUM_EPOCHS_OBSERVE * 2)  :
+                    self.epsilon -= ((INITIAL_EPSILON - FINAL_EPSILON)/NUM_EPOCHS)
             
-            print("Epoch {:04d}/{:d} | loss {:.5f} | Win count {:d} | current epsilon {:.5f}".format(e + 1,NUM_EPOCHS,loss,self.num_wins,self.epsilon))
+            print("Epoch {:04d}/{:d} | loss {:.5f} | Win count {:d} | current epsilon {:.5f} | last reward {:.5f}".format(e + 1,NUM_EPOCHS,loss,self.num_wins,self.epsilon,r_t))
             if  (not IS_TEST_RUN) and ((e % 100 == 0) and e > 0) :
                 print("saving ... ",e)
                 self.model.save(os.path.join(DATA_DIR,"rl-network.h5"),overwrite=True)
