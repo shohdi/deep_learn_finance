@@ -1560,7 +1560,21 @@ void OnTick()
                  
                 double lotSize = SymbolInfoDouble(_Symbol,SYMBOL_TRADE_CONTRACT_SIZE);
                 double orderSize = OrderLots() * lotSize;
-                double reward = (OrderProfit()/orderSize) * 100;
+                double bid = SymbolInfoDouble(_Symbol,SYMBOL_BID);
+                
+                double reward = OrderProfit();
+                
+                if(reward >0 && reward > 3)
+                {
+                  reward = 3;
+                }
+                else if(reward <0 && reward < -3)
+                {
+                  reward = -3;
+                }
+                
+                reward = reward / 3;
+               
                   
      return reward;        
                
