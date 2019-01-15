@@ -47,7 +47,7 @@ class ForexEnvironment:
             i= i+1;
 
         #print("step ended  ",self._step_started , self._step_ended);
-        self._last_state = self.normArray(self._last_state);
+        self._last_state = self.normCustomArray(self._last_state);
         self._states_coll.append(self._last_state);
         
 
@@ -62,6 +62,27 @@ class ForexEnvironment:
         min = np.amin(noZero);
         arr[arr == 0] = min;
         ret = np.array((arr-min)/(max-min),dtype=np.float32);
+        return ret;
+    
+
+    def normCustomArray(self,arr):
+        arr = np.array(arr);
+        max = np.amax(arr[:,0:8]);
+        
+        noZero = np.array( [i if i > 0.0 else max for i in arr[:,0:8].flatten()]);
+        min = np.amin(noZero);
+        for i in range(len(arr)):
+            for j in range(8):
+                lnum = arr[i][j];
+                if(lnum == 0):
+                    lnum = min;
+                arr[i][j] = ((lnum-min)/(max-min));
+            arr[i][8] = 0;
+        
+
+
+        ret = np.array(arr,dtype=np.float32);
+        ret = np.reshape(ret,(140,));
         return ret;
 
 

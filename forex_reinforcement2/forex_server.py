@@ -53,11 +53,11 @@ def action_ret():
     
     arr = ret.split(',');
     arrFloat = [float(i) for i in arr];
-    state = arrFloat[0:(100*8)];
+    state = arrFloat[0:(100*16)];
     stateNum = np.array(state,dtype=np.float32);
-    stateNum = np.reshape(stateNum,(100,8));
-    stateNum = stateNum[90:100,0:6];
-    stateNum = np.reshape(stateNum,(60,));
+    stateNum = np.reshape(stateNum,(100,16));
+    stateNum = stateNum[90:100,0:14];
+    
     reward = arrFloat[-2];
     gameOver = arrFloat[-1];
     im_reward = arrFloat[-3];

@@ -49,6 +49,7 @@ class ForexAgent:
     def __init__(self,env):
         self.env = env;
         self._started = False;
+        self.shape = (140,)
         
         
         expExists = os.path.isfile(os.path.join(DATA_DIR,"rl-network_exp.h5"));
@@ -73,17 +74,17 @@ class ForexAgent:
 
 
     def buildModel(self):
-        shape = (60,);
-        print ('print model input shape : ',shape);
+        
+        print ('print model input shape : ',self.shape);
 
         model = Sequential()
-        model.add(Dense(128,input_shape=shape));
+        model.add(Dense(256,input_shape=self.shape));
         model.add(Activation('relu'));
-        model.add(Dense(128));
+        model.add(Dense(512));
         model.add(Activation('relu'));
-        model.add(Dense(128));
+        model.add(Dense(256));
         model.add(Activation('relu'));
-        model.add(Dropout(0.25));
+        
         model.add(Dense(NUM_ACTIONS,kernel_initializer="normal"))
         
         
@@ -110,7 +111,7 @@ class ForexAgent:
         self.model1 = self.buildModel();
         
         self.copyModelWeights(self.model,self.model1);
-        test = np.zeros((60,));
+        test = np.zeros(self.shape);
         
         
         out = self.model.predict(np.expand_dims(test, axis=0));
@@ -124,7 +125,7 @@ class ForexAgent:
         
         batch_indices = np.random.randint(low=0,high=len(experience),size=batch_size)
         batch = [experience[i] for i in batch_indices]
-        X = np.zeros((batch_size,60,))
+        X = np.zeros((batch_size,self.shape[0],))
         Y = np.zeros((batch_size,num_actions))
         for i in range(len(batch)):
             s_t,a_t,r_t,s_tp1,game_over = batch[i]
