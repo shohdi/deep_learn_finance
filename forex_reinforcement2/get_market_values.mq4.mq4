@@ -888,6 +888,34 @@ double shohdiSignalDetect (int pos)
     
 }
 
+double movingAverage (int pos,int _per,int periods)
+{
+       
+     
+       double vals[];
+      
+       
+       ArrayResize(vals,periods);
+ 
+      
+      
+            CopyClose(_Symbol,_per,pos,periods,vals);
+            
+           
+       
+       double sum = 0;
+       for (int j=0;j<periods;j++)
+       {
+              sum = sum + vals[j];      
+       }
+       
+       
+       double result = sum / ((double)periods);
+       
+      
+       return result;
+}
+
 
 void shohdiCalculateSuccessFail ()
 {
@@ -1124,6 +1152,13 @@ int OnInit()
    printf("bid : %G",bid);
    printf("ask : %G",ask);
    
+   
+   printf("month : %G",getMonth(TimeCurrent()));
+   printf("day of month : %G",getDayOfMonth(TimeCurrent()));
+   printf("day of week : %G",getDayOfWeek(TimeCurrent()));
+   printf("hour : %G",getHour(TimeCurrent()));
+   printf("minute : %G",getMinute(TimeCurrent()));
+   
       //opening file
       
       
@@ -1186,16 +1221,63 @@ void OnDeinit(const int reason)
             
   }
   
+  double getMonth(datetime dateOne)
+{
+   MqlDateTime structTime ;
+   TimeToStruct(dateOne,structTime);
+   return (structTime.mon / 12.0) ;
+   
+   
+}
+
+double getDayOfMonth(datetime dateOne)
+{
+   MqlDateTime structTime ;
+   TimeToStruct(dateOne,structTime);
+   return (structTime.day / 31.0) ;
+   
+   
+}
+
+double getDayOfWeek(datetime dateOne)
+{
+   MqlDateTime structTime ;
+   TimeToStruct(dateOne,structTime);
+   return (structTime.day_of_week / 7.0) ;
+   
+   
+}
+
+double getHour(datetime dateOne)
+{
+   MqlDateTime structTime ;
+   TimeToStruct(dateOne,structTime);
+   return (structTime.hour / 24.0) ;
+   
+   
+}
+
+double getMinute (datetime dateOne)
+{
+   MqlDateTime structTime ;
+   TimeToStruct(dateOne,structTime);
+   return (structTime.min / 60.0) ;
+   
+   
+}
+  
   void writeDataToFile()
   {
        double highs[];
       double lows[];
       double closes[];
       double opens[];
+       datetime dates[];
       ArrayResize(highs,1);
       ArrayResize(lows,1);
       ArrayResize(closes,1);
       ArrayResize(opens,1);
+      ArrayResize(dates,1);
       
       int per = PERIOD_M1;
       
@@ -1203,6 +1285,7 @@ void OnDeinit(const int reason)
       CopyClose(_Symbol,per,1,1,closes);
       CopyLow(_Symbol,per,1,1,lows);
       CopyOpen(_Symbol,per,1,1,opens);
+      CopyTime(_Symbol,per,1,1,dates);
       string strRet = "";
       for(int i=0;i<1;i++)
       {
@@ -1210,7 +1293,14 @@ void OnDeinit(const int reason)
          strRet = strRet + DoubleToStr(lows[i]) + ",";
          strRet = strRet + DoubleToStr(opens[i]) + ",";
          strRet = strRet + DoubleToStr(closes[i]) + ",";
-         
+         strRet = strRet + DoubleToStr(movingAverage(1-i,PERIOD_M1,100)) + ",";
+         strRet = strRet + DoubleToStr(movingAverage(1-i,PERIOD_H1,100)) + ",";
+         strRet = strRet + DoubleToStr(movingAverage(1-i,PERIOD_D1,100)) + ",";
+         strRet = strRet + DoubleToStr(getMonth( dates[i])) + ",";
+         strRet = strRet + DoubleToStr(getDayOfMonth( dates[i])) + ",";
+         strRet = strRet + DoubleToStr(getDayOfWeek( dates[i])) + ",";
+         strRet = strRet + DoubleToStr(getHour( dates[i])) + ",";
+         strRet = strRet + DoubleToStr(getMinute( dates[i])) + ",";
          strRet = strRet + SymbolInfoDouble(_Symbol,SYMBOL_ASK) + ",";
          strRet = strRet + SymbolInfoDouble(_Symbol,SYMBOL_BID) + ",";
          
