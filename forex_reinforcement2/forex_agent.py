@@ -191,12 +191,12 @@ class ForexAgent:
             
             s_tm1 = s_t
             a_t,r_t = None,None
-            randValue = np.random.rand()
+            
             while not game_over:
                 s_tm1 = s_t
 
                 #next action
-                
+                randValue = np.random.rand()
                 if  randValue <= self.epsilon:
                     a_t = self.env.get_action_sample();
                     #print("random action ",a_t)
