@@ -343,6 +343,53 @@ bool calcTime()
     return false;
 }
 
+double getMonth(datetime dateOne)
+{
+   MqlDateTime structTime ;
+   TimeToStruct(dateOne,structTime);
+   return (structTime.mon / 12.0) ;
+   
+   
+}
+
+double getDayOfMonth(datetime dateOne)
+{
+   MqlDateTime structTime ;
+   TimeToStruct(dateOne,structTime);
+   return (structTime.day / 31.0) ;
+   
+   
+}
+
+double getDayOfWeek(datetime dateOne)
+{
+   MqlDateTime structTime ;
+   TimeToStruct(dateOne,structTime);
+   return (structTime.day_of_week / 7.0) ;
+   
+   
+}
+
+double getHour(datetime dateOne)
+{
+   MqlDateTime structTime ;
+   TimeToStruct(dateOne,structTime);
+   return (structTime.hour / 24.0) ;
+   
+   
+}
+
+double getMinute (datetime dateOne)
+{
+   MqlDateTime structTime ;
+   TimeToStruct(dateOne,structTime);
+   return (structTime.min / 60.0) ;
+   
+   
+}
+
+
+
 double maxMinMoney = 0;
 
 double calculateVolume(double stopLoss,double balance,double close,double &newMove)
@@ -535,7 +582,7 @@ bool openTrade (int type)
       takeProfit = 0;
    }
    
-   stopLoss = 0;
+   
    takeProfit = 0;
    
    int ticket=OrderSend(Symbol(),setType,volume,close,5,stopLoss,takeProfit,title,EXPERT_MAGIC,0,arrowColor);
@@ -688,9 +735,6 @@ double getDirectionOfNoOfPeriods (int pos,int noOfPeriods)
 
 
 
-
-
-
 double shohdiSma (int pos,int periods,SmaCalcType type)
 {
        
@@ -745,6 +789,35 @@ double shohdiSma (int pos,int periods,SmaCalcType type)
        double result = sum / ((double)periods);
        arrayPrint =arrayPrint + " sum : " + sum + " result : " + result;
        //Print (arrayPrint);
+      
+       return result;
+}
+
+
+double movingAverage (int pos,int _per,int periods)
+{
+       
+     
+       double vals[];
+      
+       
+       ArrayResize(vals,periods);
+ 
+      
+      
+            CopyClose(_Symbol,_per,pos,periods,vals);
+            
+           
+       
+       double sum = 0;
+       for (int j=0;j<periods;j++)
+       {
+              sum = sum + vals[j];      
+       }
+       
+       
+       double result = sum / ((double)periods);
+       
       
        return result;
 }
@@ -1121,6 +1194,11 @@ int OnInit()
    printf("bid : %G",bid);
    printf("ask : %G",ask);
    
+   printf("month : %G",getMonth(TimeCurrent()));
+   printf("day of month : %G",getDayOfMonth(TimeCurrent()));
+   printf("day of week : %G",getDayOfWeek(TimeCurrent()));
+   printf("hour : %G",getHour(TimeCurrent()));
+   printf("minute : %G",getMinute(TimeCurrent()));
       
       
 //---
@@ -1605,32 +1683,50 @@ void OnTick()
   }
   
   
+  
+  
+  
+  
   string getDateToSendToServer(double reward,bool isDone,double up,double down)
   {
       double highs[];
       double lows[];
       double closes[];
       double opens[];
+      datetime dates[];
+      
       ArrayResize(highs,longPeriod);
       ArrayResize(lows,longPeriod);
       ArrayResize(closes,longPeriod);
       ArrayResize(opens,longPeriod);
+       ArrayResize(dates,longPeriod);
+       
       
       int per = PERIOD_M1;
       
-      CopyHigh(_Symbol,per,0,longPeriod,highs);
-      CopyClose(_Symbol,per,0,longPeriod,closes);
-      CopyLow(_Symbol,per,0,longPeriod,lows);
-      CopyOpen(_Symbol,per,0,longPeriod,opens);
+      CopyHigh(_Symbol,per,1,longPeriod,highs);
+      CopyClose(_Symbol,per,1,longPeriod,closes);
+      CopyLow(_Symbol,per,1,longPeriod,lows);
+      CopyOpen(_Symbol,per,1,longPeriod,opens);
+      CopyTime(_Symbol,per,1,longPeriod,dates);
       string strRet = "";
       for(int i=0;i<longPeriod;i++)
       {
+         
          strRet = strRet + DoubleToStr(highs[i]) + ",";
          strRet = strRet + DoubleToStr(lows[i]) + ",";
          strRet = strRet + DoubleToStr(opens[i]) + ",";
          strRet = strRet + DoubleToStr(closes[i]) + ",";
          strRet = strRet + DoubleToStr(up) + ",";
          strRet = strRet + DoubleToStr(down) + ",";
+         strRet = strRet + DoubleToStr(movingAverage(longPeriod-i,PERIOD_M1,100)) + ",";
+         strRet = strRet + DoubleToStr(movingAverage(longPeriod-i,PERIOD_H1,100)) + ",";
+         strRet = strRet + DoubleToStr(movingAverage(longPeriod-i,PERIOD_D1,100)) + ",";
+         strRet = strRet + DoubleToStr(getMonth( dates[i])) + ",";
+         strRet = strRet + DoubleToStr(getDayOfMonth( dates[i])) + ",";
+         strRet = strRet + DoubleToStr(getDayOfWeek( dates[i])) + ",";
+         strRet = strRet + DoubleToStr(getHour( dates[i])) + ",";
+         strRet = strRet + DoubleToStr(getMinute( dates[i])) + ",";
          strRet = strRet + SymbolInfoDouble(_Symbol,SYMBOL_ASK) + ",";
          strRet = strRet + SymbolInfoDouble(_Symbol,SYMBOL_BID) + ",";
          
