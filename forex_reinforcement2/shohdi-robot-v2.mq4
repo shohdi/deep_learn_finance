@@ -62,7 +62,7 @@ input double averageSize = 300;
 input bool allowMovingStop = true;
 input bool allowSoftwareTrail = true;
 input double percentFromCapital = 0.001;
-input double minLossValue = 2;
+double minLossValue = 5.0;
 input bool isTakeProfit = true;
 input bool gradStop = false;
 input double maxPercent = 0;
@@ -392,72 +392,42 @@ double getMinute (datetime dateOne)
 
 double maxMinMoney = 0;
 
-double calculateVolume(double stopLoss,double balance,double close,double &newMove)
+double calculateVolume(int pos)
 {
-   double diff = 0;
-   diff = stopLoss - close;
-   if(diff < 0)
-   {
-      diff = diff * -1;
-      
-   }
-   
-   newMove = diff;
-   
-   double moneyToLoss = balance * percentFromCapital;
-   if(moneyToLoss < minLossValue)
-   {
-      moneyToLoss = minLossValue;
-   }
-   
+
+   double balance = AccountInfoDouble(ACCOUNT_BALANCE);
    double lotSize = SymbolInfoDouble(_Symbol,SYMBOL_TRADE_CONTRACT_SIZE);
+   //double bidAbeea = MarketInfo(_Symbol,MODE_BID);
+   //double askAshtry = MarketInfo(_Symbol,MODE_ASK);
+    double askAshtry = getPriceAtPosition(pos);
    
-   bool foundVolume = false;
-   double volumeFound = 0;
-   double rate = calcUsdRate(close);
-   while(! foundVolume)
+  
+   double oneValue = 1139.8/minLossValue;
+   double lossValue = percentFromCapital * balance;
+   if(lossValue < minLossValue)
    {
-      volumeFound = volumeFound + 0.01;
-      double volumeCount = lotSize * volumeFound ;
-      double allDiff =  volumeCount * diff ;
+      lossValue = minLossValue;
       
-      double lossPrice = allDiff * rate;
-      
-      if(volumeFound == 0.01)
-      {
-         if(lossPrice > maxMinMoney)
-         {
-            maxMinMoney = lossPrice;
-         }
-      }
-      
-      if(lossPrice > moneyToLoss)
-      {
-         foundVolume = true;
-         if(volumeFound > 0.01)
-         {
-            volumeFound = volumeFound - 0.01;
-         }
-         
-         volumeCount = lotSize * volumeFound ;
-         allDiff =  volumeCount * diff ;
-      
-         lossPrice = allDiff * rate;
-         
-         if(lossPrice > moneyToLoss)
-         {
-           
-            newMove = ((moneyToLoss * diff)/lossPrice);
-            Print("found new average! old ",diff," new " , newMove);
-         }
-         
-          
-      }  
    }
    
+   double calcVol = 0;
+   double volume = 0;
    
+   while((calcVol / oneValue) <= lossValue)
+   {
+      volume = volume + 0.01;
+      calcVol = volume * lotSize;
+      calcVol = calcVol * askAshtry;
+   } 
    
-   return volumeFound;
+   if(volume > 0.01)
+   {
+      volume = volume - 0.01;
+   }
+   
+   return volume;
+   
+  
    
 }
 
@@ -541,8 +511,8 @@ bool openTrade (int type)
       stopLoss = close + averageMove;
       takeProfit = close - (averageMove * riskToProfit);
     }
-    double newAverageMove = 0;
-    double volume = calculateVolume(stopLoss,balance,close,newAverageMove);
+    
+    double volume = calculateVolume(1);
     /*
     if( newAverageMove < averageMove)
     {
@@ -1077,58 +1047,49 @@ void calculateSuccessFailDown(double signal,double averageMove,int lastPos)
 
 }
 
+double getPriceAtPosition(int pos)
+{
+   double closes1[];
+   
+   ArrayResize(closes1,1);
+   CopyClose(_Symbol,_Period,pos,1,closes1);
+   return closes1[0];
+}
+
+double calcOfLossValue(double lossValue,int pos)
+{
+   
+   double lotSize = SymbolInfoDouble(_Symbol,SYMBOL_TRADE_CONTRACT_SIZE);
+   //double bidAbeea = MarketInfo(_Symbol,MODE_BID);
+   //double askAshtry = MarketInfo(_Symbol,MODE_ASK);
+   double askAshtry = getPriceAtPosition(pos);
+   
+   
+   
+   
+   double volume = calculateVolume(pos);
+   double averageMove = lossValue/(volume * lotSize*askAshtry);
+   
+   return averageMove;
+}
+
 double calculateMoveOfStopLoss(int pos)
 {
-  double highs[];
-  double lows[];
-  
-  ArrayResize(highs,averageSize);
-  ArrayResize(lows,averageSize);
-  
-  int bars = noOfTradePeriods - 1;
-
-   CopyHigh(_Symbol,_Period,pos,averageSize,highs);
-   CopyLow(_Symbol,_Period,pos,averageSize,lows);
-   
-   double average = 0;
-   int count = 0;
-   double maxMove = 0;
-   for (int i=0;(i+bars) < averageSize;i++)
+   double balance = AccountInfoDouble(ACCOUNT_BALANCE);
+   double lossValue = percentFromCapital * balance;
+   if(lossValue < minLossValue)
    {
-      double allHigh = 0;
-      double allLow = 999999999;
-      for (int j=0;j<noOfTradePeriods;j++)
-      {
-         int index = i+j;
-         if(allHigh < highs[index])
-            allHigh = highs[index];
-         
-         if(allLow > lows[index])
-            allLow = lows[index];
-         
-      }
-      
-      double moveMent = allHigh - allLow;
-      
-      if(moveMent > maxMove)
-      {
-         maxMove = moveMent;
-      }
-      
-      average = average + moveMent;
-      
-      count = count + 1;
+      lossValue = minLossValue;
       
    }
+   double averageMove = calcOfLossValue(lossValue,pos);
    
-   average = average / count;
    
-   average = average - (average * 0.25);
+   return averageMove * riskToProfit; 
    
-   average = average * riskToProfit;
-   //average = maxMove * maxMovePercent;
    
-   return average;
+   
+  
   
 }
 
@@ -1183,7 +1144,8 @@ int OnInit()
    printf("ACCOUNT_MARGIN_SO_CALL = %G",AccountInfoDouble(ACCOUNT_MARGIN_SO_CALL));
    printf("ACCOUNT_MARGIN_SO_SO = %G",AccountInfoDouble(ACCOUNT_MARGIN_SO_SO));
    printf("ACCOUNT_LEVERAGE = %G",AccountInfoInteger(ACCOUNT_LEVERAGE));
-   printf("lot size : %G" , SymbolInfoDouble(_Symbol,SYMBOL_TRADE_CONTRACT_SIZE));
+   double lotSize = SymbolInfoDouble(_Symbol,SYMBOL_TRADE_CONTRACT_SIZE);
+   printf("lot size : %G" ,lotSize );
    double pointSize = MarketInfo(_Symbol,MODE_POINT);
    double spreadSize = MarketInfo(_Symbol,MODE_SPREAD);
    double bid = MarketInfo(_Symbol,MODE_BID);
@@ -1199,6 +1161,10 @@ int OnInit()
    printf("day of week : %G",getDayOfWeek(TimeCurrent()));
    printf("hour : %G",getHour(TimeCurrent()));
    printf("minute : %G",getMinute(TimeCurrent()));
+   double volume = calculateVolume(0);
+   double averageMove = calculateMoveOfStopLoss(0)/riskToProfit;
+   double loss = averageMove * volume * lotSize * ask;
+   printf("volume to trade : %G , averageMove : %G , lossValue : %G",volume,averageMove,loss);
       
       
 //---
