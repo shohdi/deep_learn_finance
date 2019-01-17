@@ -1165,7 +1165,8 @@ int OnInit()
       
       
       filehandle=FileOpen(fileName,FILE_WRITE|FILE_CSV);
-      
+      string txt="<high>,<low>,<open>,<close>,<avgm>,<avgh>,<avgd>,<month>,<dayofmonth>,<dayofweek>,<hour>,<minute>,<ask>,<bid>";
+      FileWrite(filehandle,txt);
       
 //---
    return(INIT_SUCCEEDED);
