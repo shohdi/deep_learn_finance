@@ -16,8 +16,8 @@ from tensorboardX import SummaryWriter
 BATCH_SIZE = 32
 BARS_COUNT = 10
 TARGET_NET_SYNC = 1000
-DEFAULT_STOCKS = "data/YNDX_160101_161231.csv"
-DEFAULT_VAL_STOCKS = "data/YNDX_150101_151231.csv"
+DEFAULT_STOCKS = "data/train_data/year_1.csv"
+DEFAULT_VAL_STOCKS = "data/train_data/year_2.csv"
 
 GAMMA = 0.99
 
@@ -57,17 +57,17 @@ if __name__ == "__main__":
             stock_data = data.load_year_data(args.year)
         else:
             stock_data = {"YNDX": data.load_relative(args.data)}
-        env = environ.StocksEnv(stock_data, bars_count=BARS_COUNT, reset_on_close=True, state_1d=False, volumes=False)
-        env_tst = environ.StocksEnv(stock_data, bars_count=BARS_COUNT, reset_on_close=True, state_1d=False)
+        env = environ.StocksEnv(stock_data, bars_count=BARS_COUNT, reset_on_close=True,state_15=True, state_1d=False, volumes=False)
+        env_tst = environ.StocksEnv(stock_data, bars_count=BARS_COUNT, reset_on_close=True,state_15=True, state_1d=False, volumes=False)
     elif os.path.isdir(args.data):
-        env = environ.StocksEnv.from_dir(args.data, bars_count=BARS_COUNT, reset_on_close=True, state_1d=False)
-        env_tst = environ.StocksEnv.from_dir(args.data, bars_count=BARS_COUNT, reset_on_close=True, state_1d=False)
+        env = environ.StocksEnv.from_dir(args.data, bars_count=BARS_COUNT, reset_on_close=True,state_15=True, state_1d=False, volumes=False)
+        env_tst = environ.StocksEnv.from_dir(args.data, bars_count=BARS_COUNT, reset_on_close=True,state_15=True, state_1d=False, volumes=False)
     else:
         raise RuntimeError("No data to train on")
     env = gym.wrappers.TimeLimit(env, max_episode_steps=1000)
 
     val_data = {"YNDX": data.load_relative(args.valdata)}
-    env_val = environ.StocksEnv(val_data, bars_count=BARS_COUNT, reset_on_close=True, state_1d=False)
+    env_val = environ.StocksEnv(val_data, bars_count=BARS_COUNT, reset_on_close=True, state_15=True,state_1d=False, volumes=False)
 
     writer = SummaryWriter(comment="-simple-" + args.run)
     net = models.SimpleFFDQN(env.observation_space.shape[0], env.action_space.n).to(device)
