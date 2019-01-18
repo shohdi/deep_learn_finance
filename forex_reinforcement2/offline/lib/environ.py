@@ -59,7 +59,7 @@ class State15:
         
         noZero = np.array( [i if i > 0.0 else max for i in arr[:,0:6].flatten()]);
         min = np.amin(noZero);
-        for i in range(len(self.bars_count)):
+        for i in range(self.bars_count):
             close_index = (i*num) + 3;
             current_close = arrIn[close_index];
 
@@ -70,9 +70,9 @@ class State15:
                     lnum = min;
                 arrIn[my_index] = ((lnum-min)/(max-min));
             avgd_index = (i*num)+6;
-            if(arrIn[avgd_index] > arrIn[close_index]):
+            if(arrIn[avgd_index] > current_close):
                 arrIn[avgd_index] = 1;
-            elif (arrIn[avgd_index] < arrIn[close_index]):
+            elif (arrIn[avgd_index] < current_close):
                 arrIn[avgd_index] = 0;
             else:
                 arrIn[avgd_index] = 0.5;
