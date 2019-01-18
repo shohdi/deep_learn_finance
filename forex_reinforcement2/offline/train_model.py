@@ -58,7 +58,7 @@ if __name__ == "__main__":
         if args.year is not None:
             stock_data = data.load_year_data(args.year)
         else:
-            stock_data = {"YNDX": data.load_relative(args.data)}
+            stock_data = {"EURUSD": data.load_relative(args.data)}
         env = environ.StocksEnv(stock_data, bars_count=BARS_COUNT, reset_on_close=True,state_15=True, state_1d=False, volumes=False)
         env_tst = environ.StocksEnv(stock_data, bars_count=BARS_COUNT, reset_on_close=True,state_15=True, state_1d=False, volumes=False)
     elif os.path.isdir(args.data):
@@ -68,7 +68,7 @@ if __name__ == "__main__":
         raise RuntimeError("No data to train on")
     env = gym.wrappers.TimeLimit(env, max_episode_steps=1000)
 
-    val_data = {"YNDX": data.load_relative(args.valdata)}
+    val_data = {"EURUSD": data.load_relative(args.valdata)}
     env_val = environ.StocksEnv(val_data, bars_count=BARS_COUNT, reset_on_close=True, state_15=True,state_1d=False, volumes=False)
 
     writer = SummaryWriter(comment="-simple-" + args.run)
