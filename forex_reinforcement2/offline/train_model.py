@@ -18,6 +18,8 @@ BARS_COUNT = 10
 TARGET_NET_SYNC = 1000
 DEFAULT_STOCKS = "data/train_data/year_1.csv"
 DEFAULT_VAL_STOCKS = "data/train_data/year_2.csv"
+#DEFAULT_STOCKS = "/home/shohdi/projects/deep_learn_finance/forex_reinforcement2/offline/data/train_data/year_1.csv"
+#DEFAULT_VAL_STOCKS = "/home/shohdi/projects/deep_learn_finance/forex_reinforcement2/offline/data/train_data/year_2.csv"
 
 GAMMA = 0.99
 
@@ -41,11 +43,11 @@ VALIDATION_EVERY_STEP = 100000
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--cuda", default=False, action="store_true", help="Enable cuda")
+    parser.add_argument("--cuda", default=True, action="store_true", help="Enable cuda")
     parser.add_argument("--data", default=DEFAULT_STOCKS, help="Stocks file or dir to train on, default=" + DEFAULT_STOCKS)
     parser.add_argument("--year", type=int, help="Year to be used for training, if specified, overrides --data option")
     parser.add_argument("--valdata", default=DEFAULT_VAL_STOCKS, help="Stocks data for validation, default=" + DEFAULT_VAL_STOCKS)
-    parser.add_argument("-r", "--run", required=True, help="Run name")
+    parser.add_argument("-r", "--run", default="shohdi-forex", help="Run name")
     args = parser.parse_args()
     device = torch.device("cuda" if args.cuda else "cpu")
 
