@@ -50,6 +50,7 @@ if __name__ == "__main__":
     parser.add_argument("-r", "--run", default="shohdi-forex", help="Run name")
     args = parser.parse_args()
     device = torch.device("cuda" if args.cuda else "cpu")
+    writer = SummaryWriter(comment="-simple-" + args.run)
 
     saves_path = os.path.join("saves", args.run)
     os.makedirs(saves_path, exist_ok=True)
@@ -59,8 +60,8 @@ if __name__ == "__main__":
             stock_data = data.load_year_data(args.year)
         else:
             stock_data = {"EURUSD": data.load_relative(args.data)}
-        env = environ.StocksEnv(stock_data, bars_count=BARS_COUNT, reset_on_close=True,state_15=True, state_1d=False, volumes=False)
-        env_tst = environ.StocksEnv(stock_data, bars_count=BARS_COUNT, reset_on_close=True,state_15=True, state_1d=False, volumes=False)
+        env = environ.StocksEnv("train",writer,stock_data, bars_count=BARS_COUNT, reset_on_close=True,state_15=True, state_1d=False, volumes=False)
+        env_tst = environ.StocksEnv("test",writer,stock_data, bars_count=BARS_COUNT, reset_on_close=True,state_15=True, state_1d=False, volumes=False)
     elif os.path.isdir(args.data):
         env = environ.StocksEnv.from_dir(args.data, bars_count=BARS_COUNT, reset_on_close=True,state_15=True, state_1d=False, volumes=False)
         env_tst = environ.StocksEnv.from_dir(args.data, bars_count=BARS_COUNT, reset_on_close=True,state_15=True, state_1d=False, volumes=False)
@@ -69,9 +70,9 @@ if __name__ == "__main__":
     env = gym.wrappers.TimeLimit(env, max_episode_steps=1000)
 
     val_data = {"EURUSD": data.load_relative(args.valdata)}
-    env_val = environ.StocksEnv(val_data, bars_count=BARS_COUNT, reset_on_close=True, state_15=True,state_1d=False, volumes=False)
+    env_val = environ.StocksEnv("validation",writer,val_data, bars_count=BARS_COUNT, reset_on_close=True, state_15=True,state_1d=False, volumes=False)
 
-    writer = SummaryWriter(comment="-simple-" + args.run)
+    
     net = models.SimpleFFDQN(env.observation_space.shape[0], env.action_space.n).to(device)
     tgt_net = ptan.agent.TargetNet(net)
     selector = ptan.actions.EpsilonGreedyActionSelector(EPSILON_START)

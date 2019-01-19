@@ -3,6 +3,7 @@ import gym.spaces
 from gym.utils import seeding
 import enum
 import numpy as np
+from tensorboardX import SummaryWriter
 
 from . import data
 
@@ -18,7 +19,10 @@ class Actions(enum.Enum):
 
 
 class State15:
-    def __init__(self, bars_count, commission_perc, reset_on_close, reward_on_close=True, volumes=False):
+    def __init__(self,env_name,writer, bars_count, commission_perc, reset_on_close, reward_on_close=True, volumes=False):
+        assert isinstance(env_name,str)
+        assert not (env_name == None or env_name == '')
+        assert isinstance(writer,SummaryWriter)
         assert isinstance(bars_count, int)
         assert bars_count > 0
         assert isinstance(commission_perc, float)
@@ -30,6 +34,9 @@ class State15:
         self.reset_on_close = reset_on_close
         self.reward_on_close = reward_on_close
         self.volumes = volumes
+        self.env_name = env_name
+        self.writer = writer
+        self.game_done = 0
         
     def reset(self, prices, offset):
         assert isinstance(prices, data.Prices)
@@ -136,7 +143,11 @@ class State15:
         """
         Calculate real close price for the current bar
         """
-        return self._prices.close[self._offset];
+        if not self.have_position:
+            return self._cur_ashtry();
+        else:
+            return self._cur_exit_pos();
+
     def _cur_ashtry(self):
         
         return self._prices.ask[self._offset];
@@ -163,15 +174,19 @@ class State15:
         elif action == Actions.Close and self.have_position:
             reward -= self.commission_perc
             done |= self.reset_on_close
-            
-            reward += self.getReward();
+            if self.reward_on_close:
+                reward += self.getReward();
+            self.game_done+=1
+            self.writer.add_scalar("shohdi-"+self.env_name+"-reward",self.getReward(),self.game_done)
             self.have_position = False
             self.open_price = 0.0
         elif self.getReward() <= -0.5 and self.have_position:
             reward -= self.commission_perc
             done |= self.reset_on_close
-            
-            reward += self.getReward();
+            if self.reward_on_close:
+                reward += self.getReward();
+            self.game_done+=1
+            self.writer.add_scalar("shohdi-"+self.env_name+"-reward",self.getReward(),self.game_done)
             self.have_position = False
             self.open_price = 0.0
 
@@ -314,16 +329,19 @@ class State1D(State):
 class StocksEnv(gym.Env):
     metadata = {'render.modes': ['human']}
 
-    def __init__(self, prices, bars_count=DEFAULT_BARS_COUNT,
+    def __init__(self,env_name,writer, prices, bars_count=DEFAULT_BARS_COUNT,
                  commission=DEFAULT_COMMISSION_PERC, reset_on_close=True,state_15 = True, state_1d=False,
                  random_ofs_on_reset=True, reward_on_close=False, volumes=False):
+        assert isinstance(env_name,str)
+        assert not (env_name == None or env_name == '')
+        assert isinstance(writer,SummaryWriter)
         assert isinstance(prices, dict)
         self._prices = prices
         if state_1d:
             self._state = State1D(bars_count, commission, reset_on_close, reward_on_close=reward_on_close,
                                   volumes=volumes)
         elif state_15:
-            self._state = State15(bars_count, commission, reset_on_close, reward_on_close=reward_on_close,
+            self._state = State15(env_name,writer,bars_count, commission, reset_on_close, reward_on_close=reward_on_close,
                                   volumes=volumes)
         else:
             self._state = State(bars_count, commission, reset_on_close, reward_on_close=reward_on_close,
