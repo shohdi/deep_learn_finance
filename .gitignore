@@ -23,6 +23,8 @@ forex_reinforcement/.iptable_fix.txt.swp
 forex_reinforcement/.run_help.txt.swp
 forex_reinforcement/run_help.txt.save
 forex_reinforcement/.vscode/settings.json
-forex_reinforcement2/runs/Jan19_02-04-27_shohdi-acer-lab-simple-shohdi-forex/events.out.tfevents.1547852667.shohdi-acer-lab
-forex_reinforcement2/runs/Jan19_01-59-26_shohdi-acer-lab-simple-shohdi-forex/events.out.tfevents.1547852366.shohdi-acer-lab
-forex_reinforcement2/runs/Jan19_02-07-59_shohdi-acer-lab-simple-shohdi-forex/events.out.tfevents.1547852879.shohdi-acer-lab
+forex_reinforcement2/offline/runs/*
+forex_reinforcement2/offline/saves/*
+
+forex_reinforcement2/runs/*
+
