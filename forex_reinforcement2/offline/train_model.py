@@ -16,8 +16,8 @@ from tensorboardX import SummaryWriter
 BATCH_SIZE = 32
 BARS_COUNT = 10
 TARGET_NET_SYNC = 1000
-DEFAULT_STOCKS = "data/train_data/year_1.csv"
-DEFAULT_VAL_STOCKS = "data/train_data/year_2.csv"
+DEFAULT_STOCKS = "data/train_data/data_5yr_to_9_2017.csv"
+DEFAULT_VAL_STOCKS = "data/train_data/v2018.csv"
 #DEFAULT_STOCKS = "/home/shohdi/projects/deep_learn_finance/forex_reinforcement2/offline/data/train_data/year_1.csv"
 #DEFAULT_VAL_STOCKS = "/home/shohdi/projects/deep_learn_finance/forex_reinforcement2/offline/data/train_data/year_2.csv"
 
