@@ -3,6 +3,7 @@ import gym.spaces
 from gym.utils import seeding
 import enum
 import numpy as np
+import collections
 from tensorboardX import SummaryWriter
 
 from . import data
@@ -37,6 +38,7 @@ class State15:
         self.env_name = env_name
         self.writer = writer
         self.game_done = 0
+        self.rewards = collections.deque(maxlen=100)
         
     def reset(self, prices, offset):
         assert isinstance(prices, data.Prices)
@@ -53,6 +55,14 @@ class State15:
             return (13 * self.bars_count + 1 + 1, )
         else:
             return (12*self.bars_count + 1 + 1, )
+
+    def getMeanReward(self):
+        sum = 0
+        for i in range(len(self.rewards)):
+            sum += self.rewards[i]
+        
+        sum /= len(self.rewards)
+        return sum
 
     def normCustomArray(self,arrIn):
         num = 12;
@@ -177,7 +187,8 @@ class State15:
             if self.reward_on_close:
                 reward += self.getReward();
             self.game_done+=1
-            self.writer.add_scalar("shohdi-"+self.env_name+"-reward",self.getReward(),self.game_done)
+            self.rewards.append(self.getReward())
+            self.writer.add_scalar("shohdi-"+self.env_name+"-reward",self.getMeanReward(),self.game_done)
             self.have_position = False
             self.open_price = 0.0
         elif self.getReward() <= -0.5 and self.have_position:
@@ -186,7 +197,8 @@ class State15:
             if self.reward_on_close:
                 reward += self.getReward();
             self.game_done+=1
-            self.writer.add_scalar("shohdi-"+self.env_name+"-reward",self.getReward(),self.game_done)
+            self.rewards.append(self.getReward())
+            self.writer.add_scalar("shohdi-"+self.env_name+"-reward",self.getMeanReward(),self.game_done)
             self.have_position = False
             self.open_price = 0.0
 

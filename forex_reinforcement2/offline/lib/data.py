@@ -83,11 +83,24 @@ def read_csv(file_name, sep=',', filter_data=True, fix_open_price=False):
 
 
 def prices_to_relative(prices):
-    return prices;
+    """
+    Convert prices to relative in respect to open price
+    :param ochl: tuple with open, close, high, low
+    :return: tuple with open, rel_close, rel_high, rel_low
+    """
+    assert isinstance(prices, Prices)
+    rh = (prices.high - prices.open) / prices.open
+    rl = (prices.low - prices.open) / prices.open
+    rc = (prices.close - prices.open) / prices.open
+    return Prices(open=prices.open, high=rh, low=rl, close=rc, volume=prices.volume)
 
 
-def load_relative(csv_file):
-    return prices_to_relative(read_csv(csv_file))
+def load_relative(csv_file,isRelative):
+	assert isinstance(isRelative,bool)
+	if(isRelative):
+		return prices_to_relative(read_csv(csv_file))
+	else
+		return read_csv(csv_file)
 
 
 def price_files(dir_name):

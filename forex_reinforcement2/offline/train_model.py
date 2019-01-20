@@ -13,6 +13,7 @@ from lib import environ, data, models, common, validation
 
 from tensorboardX import SummaryWriter
 
+STATE_15 = False
 BATCH_SIZE = 32
 BARS_COUNT = 10
 TARGET_NET_SYNC = 1000
@@ -59,18 +60,18 @@ if __name__ == "__main__":
         if args.year is not None:
             stock_data = data.load_year_data(args.year)
         else:
-            stock_data = {"EURUSD": data.load_relative(args.data)}
-        env = environ.StocksEnv("train",writer,stock_data, bars_count=BARS_COUNT, reset_on_close=True,state_15=True, state_1d=False, volumes=False)
-        env_tst = environ.StocksEnv("test",writer,stock_data, bars_count=BARS_COUNT, reset_on_close=True,state_15=True, state_1d=False, volumes=False)
+            stock_data = {"EURUSD": data.load_relative(args.data,not STATE_15)}
+        env = environ.StocksEnv("train",writer,stock_data, bars_count=BARS_COUNT, reset_on_close=True,state_15=STATE_15, state_1d=False, volumes=False)
+        env_tst = environ.StocksEnv("test",writer,stock_data, bars_count=BARS_COUNT, reset_on_close=True,state_15=STATE_15, state_1d=False, volumes=False)
     elif os.path.isdir(args.data):
-        env = environ.StocksEnv.from_dir(args.data, bars_count=BARS_COUNT, reset_on_close=True,state_15=True, state_1d=False, volumes=False)
-        env_tst = environ.StocksEnv.from_dir(args.data, bars_count=BARS_COUNT, reset_on_close=True,state_15=True, state_1d=False, volumes=False)
+        env = environ.StocksEnv.from_dir(args.data, bars_count=BARS_COUNT, reset_on_close=True,state_15=STATE_15, state_1d=False, volumes=False)
+        env_tst = environ.StocksEnv.from_dir(args.data, bars_count=BARS_COUNT, reset_on_close=True,state_15=STATE_15, state_1d=False, volumes=False)
     else:
         raise RuntimeError("No data to train on")
     env = gym.wrappers.TimeLimit(env, max_episode_steps=1000)
 
-    val_data = {"EURUSD": data.load_relative(args.valdata)}
-    env_val = environ.StocksEnv("validation",writer,val_data, bars_count=BARS_COUNT, reset_on_close=True, state_15=True,state_1d=False, volumes=False)
+    val_data = {"EURUSD": data.load_relative(args.valdata,not STATE_15)}
+    env_val = environ.StocksEnv("validation",writer,val_data, bars_count=BARS_COUNT, reset_on_close=True, state_15=STATE_15,state_1d=False, volumes=False)
 
     
     net = models.SimpleFFDQN(env.observation_space.shape[0], env.action_space.n).to(device)
