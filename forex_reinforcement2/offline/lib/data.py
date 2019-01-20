@@ -99,7 +99,7 @@ def load_relative(csv_file,isRelative):
 	assert isinstance(isRelative,bool)
 	if(isRelative):
 		return prices_to_relative(read_csv(csv_file))
-	else
+	else:
 		return read_csv(csv_file)
 
 
