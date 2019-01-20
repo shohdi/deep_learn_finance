@@ -215,7 +215,10 @@ class State15:
 
 
 class State:
-    def __init__(self, bars_count, commission_perc, reset_on_close, reward_on_close=True, volumes=True):
+    def __init__(self,env_name,writer, bars_count, commission_perc, reset_on_close, reward_on_close=True, volumes=True):
+        assert isinstance(env_name,str)
+        assert not (env_name == None or env_name == '')
+        assert isinstance(writer,SummaryWriter)
         assert isinstance(bars_count, int)
         assert bars_count > 0
         assert isinstance(commission_perc, float)
@@ -227,7 +230,20 @@ class State:
         self.reset_on_close = reset_on_close
         self.reward_on_close = reward_on_close
         self.volumes = volumes
+        self.env_name = env_name
+        self.writer = writer
+        self.game_done = 0
+        self.rewards = collections.deque(maxlen=100)
+
+    def getMeanReward(self):
+        sum = 0
+        for i in range(len(self.rewards)):
+            sum += self.rewards[i]
         
+        sum /= len(self.rewards)
+        return sum
+
+
     def reset(self, prices, offset):
         assert isinstance(prices, data.Prices)
         assert offset >= self.bars_count-1
@@ -268,13 +284,34 @@ class State:
             res[shift] = (self._cur_close() - self.open_price) / self.open_price
         return res
 
+
+    def getReward(self):
+        if not self.have_position:
+            return 0.0
+        else:
+            return ((self._cur_exit_pos() - self.open_price) * (0.01 * 100000))/10.0;
+        
+
+
+    def _cur_ashtry(self):
+        
+        return self._prices.ask[self._offset];
+    def _cur_exit_pos(self):
+       
+        return self._prices.bid[self._offset];
+
     def _cur_close(self):
         """
         Calculate real close price for the current bar
         """
+        rel_close = self._cur_ashtry();
+        if not self.have_position:
+            rel_close= self._cur_ashtry();
+        else:
+            rel_close= self._cur_exit_pos();
         open = self._prices.open[self._offset]
-        rel_close = self._prices.close[self._offset]
         return open * (1.0 + rel_close)
+
 
     def step(self, action):
         """
@@ -296,8 +333,22 @@ class State:
             done |= self.reset_on_close
             if self.reward_on_close:
                 reward += 100.0 * (close - self.open_price) / self.open_price
+            self.game_done+=1
+            self.rewards.append(self.getReward())
+            self.writer.add_scalar("shohdi-"+self.env_name+"-reward",self.getMeanReward(),self.game_done)
             self.have_position = False
             self.open_price = 0.0
+        elif self.getReward() <= -0.5 and self.have_position:
+            reward -= self.commission_perc
+            done |= self.reset_on_close
+            if self.reward_on_close:
+                reward += 100.0 * (close - self.open_price) / self.open_price
+            self.game_done+=1
+            self.rewards.append(self.getReward())
+            self.writer.add_scalar("shohdi-"+self.env_name+"-reward",self.getMeanReward(),self.game_done)
+            self.have_position = False
+            self.open_price = 0.0
+
 
         self._offset += 1
         prev_close = close
@@ -356,7 +407,7 @@ class StocksEnv(gym.Env):
             self._state = State15(env_name,writer,bars_count, commission, reset_on_close, reward_on_close=reward_on_close,
                                   volumes=volumes)
         else:
-            self._state = State(bars_count, commission, reset_on_close, reward_on_close=reward_on_close,
+            self._state = State(env_name,writer,bars_count, commission, reset_on_close, reward_on_close=reward_on_close,
                                 volumes=volumes)
         self.action_space = gym.spaces.Discrete(n=len(Actions))
         self.observation_space = gym.spaces.Box(low=-np.inf, high=np.inf, shape=self._state.shape, dtype=np.float32)
