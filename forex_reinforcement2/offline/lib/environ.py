@@ -222,7 +222,7 @@ class State:
         assert isinstance(bars_count, int)
         assert bars_count > 0
         assert isinstance(commission_perc, float)
-        assert commission_perc >= 0.0
+        
         assert isinstance(reset_on_close, bool)
         assert isinstance(reward_on_close, bool)
         self.bars_count = bars_count
@@ -309,8 +309,8 @@ class State:
             rel_close= self._cur_ashtry();
         else:
             rel_close= self._cur_exit_pos();
-        open = self._prices.open[self._offset]
-        return open * (1.0 + rel_close)
+        #open = self._prices.open[self._offset]
+        return rel_close
 
 
     def step(self, action):

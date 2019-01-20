@@ -92,7 +92,18 @@ def prices_to_relative(prices):
     rh = (prices.high - prices.open) / prices.open
     rl = (prices.low - prices.open) / prices.open
     rc = (prices.close - prices.open) / prices.open
-    return Prices(open=prices.open, high=rh, low=rl, close=rc, volume=prices.volume)
+    return Prices(open=prices.open, high=rh, low=rl, close=rc,
+                  avgm=prices.avgm,
+                  avgh=prices.avgh,
+                  avgd=prices.avgd,
+                  month=prices.month,
+                  dayofmonth=prices.dayofmonth,
+                  dayofweek=prices.dayofweek,
+                  hour=prices.hour,
+                  minute=prices.minute,
+                  ask=prices.ask,
+                  bid=prices.bid,
+                  volume = prices.volume)
 
 
 def load_relative(csv_file,isRelative):
