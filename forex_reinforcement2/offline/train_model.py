@@ -24,7 +24,7 @@ DEFAULT_VAL_STOCKS = "data/test_data/v2018.csv"
 
 GAMMA = 0.99
 
-REPLAY_SIZE = 100000
+REPLAY_SIZE = 1842819
 REPLAY_INITIAL = 10000
 
 REWARD_STEPS = 2
@@ -40,6 +40,11 @@ EPSILON_STEPS = 1000000
 
 CHECKPOINT_EVERY_STEP = 1000000
 VALIDATION_EVERY_STEP = 100000
+
+def calculateModelParams(net):
+    model_parameters = filter(lambda p: p.requires_grad, net.parameters())
+    params = sum([np.prod(p.size()) for p in model_parameters])
+    print(params)
 
 
 if __name__ == "__main__":
@@ -75,6 +80,7 @@ if __name__ == "__main__":
 
     
     net = models.SimpleFFDQN(env.observation_space.shape[0], env.action_space.n).to(device)
+    calculateModelParams(net)
     tgt_net = ptan.agent.TargetNet(net)
     selector = ptan.actions.EpsilonGreedyActionSelector(EPSILON_START)
     agent = ptan.agent.DQNAgent(net, selector, device=device)
