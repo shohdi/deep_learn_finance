@@ -13,9 +13,9 @@ from lib import environ, data, models, common, validation
 
 from tensorboardX import SummaryWriter
 
-STATE_15 = False
+STATE_15 = True
 BATCH_SIZE = 32
-BARS_COUNT = 10
+BARS_COUNT = 30
 TARGET_NET_SYNC = 1000
 DEFAULT_STOCKS = "data/train_data/data_5yr_to_9_2017.csv"
 DEFAULT_VAL_STOCKS = "data/test_data/v2018.csv"

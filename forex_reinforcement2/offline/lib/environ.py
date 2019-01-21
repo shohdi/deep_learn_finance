@@ -8,7 +8,7 @@ from tensorboardX import SummaryWriter
 
 from . import data
 
-DEFAULT_BARS_COUNT = 10
+DEFAULT_BARS_COUNT = 30
 DEFAULT_COMMISSION_PERC = 0.0
 
 
@@ -139,10 +139,15 @@ class State15:
                 shift += 1            
         res[shift] = float(self.have_position)
         shift += 1
-        res[shift] = self.getReward();
+        res[shift] = self.getTrainReward();
+        
         res = self.normCustomArray(res);
         return res
 
+    def getTrainReward(self):
+        if not self.have_position:
+            return 0.0
+        return ((self._cur_exit_pos() - self.open_price)/self.open_price)*100
     def getReward(self):
         if not self.have_position:
             return 0.0
@@ -185,7 +190,7 @@ class State15:
             reward -= self.commission_perc
             done |= self.reset_on_close
             if self.reward_on_close:
-                reward += self.getReward();
+                reward += self.getTrainReward()
             self.game_done+=1
             self.rewards.append(self.getReward())
             self.writer.add_scalar("shohdi-"+self.env_name+"-reward",self.getMeanReward(),self.game_done)
@@ -195,7 +200,7 @@ class State15:
             reward -= self.commission_perc
             done |= self.reset_on_close
             if self.reward_on_close:
-                reward += self.getReward();
+                reward += self.getTrainReward();
             self.game_done+=1
             self.rewards.append(self.getReward())
             self.writer.add_scalar("shohdi-"+self.env_name+"-reward",self.getMeanReward(),self.game_done)
@@ -208,7 +213,7 @@ class State15:
         done |= self._offset >= self._prices.close.shape[0]-1
 
         if self.have_position and not self.reward_on_close:
-            reward += self.getReward();
+            reward += self.getTrainReward();
 
         return reward, done
 
