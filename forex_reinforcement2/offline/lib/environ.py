@@ -191,6 +191,8 @@ class State15:
             done |= self.reset_on_close
             if self.reward_on_close:
                 reward += self.getTrainReward()
+            else:
+                reward -= 0.05; #spread
             self.game_done+=1
             self.rewards.append(self.getReward())
             self.writer.add_scalar("shohdi-"+self.env_name+"-reward",self.getMeanReward(),self.game_done)
@@ -201,6 +203,8 @@ class State15:
             done |= self.reset_on_close
             if self.reward_on_close:
                 reward += self.getTrainReward();
+            else:
+                reward -= 0.05; #spread
             self.game_done+=1
             self.rewards.append(self.getReward())
             self.writer.add_scalar("shohdi-"+self.env_name+"-reward",self.getMeanReward(),self.game_done)
@@ -213,7 +217,7 @@ class State15:
         done |= self._offset >= self._prices.close.shape[0]-1
 
         if self.have_position and not self.reward_on_close:
-            reward += self.getTrainReward();
+            reward += ((close - prev_close) / prev_close) * 100;
 
         return reward, done
 
