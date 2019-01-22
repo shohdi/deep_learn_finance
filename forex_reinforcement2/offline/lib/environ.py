@@ -5,10 +5,11 @@ import enum
 import numpy as np
 import collections
 from tensorboardX import SummaryWriter
+import math
 
 from . import data
 
-DEFAULT_BARS_COUNT = 30
+DEFAULT_BARS_COUNT = 16
 DEFAULT_COMMISSION_PERC = 0.0
 
 
@@ -52,9 +53,9 @@ class State15:
     def shape(self):
         # [h, l, c] * bars + position_flag + rel_profit (since open)
         if self.volumes:
-            return (13 * self.bars_count + 1 + 1, )
+            return (8 * self.bars_count + 1 + 1, )
         else:
-            return (12*self.bars_count + 1 + 1, )
+            return (7*self.bars_count + 1 + 1, )
 
     def getMeanReward(self):
         sum = 0
@@ -65,39 +66,47 @@ class State15:
         return sum
 
     def normCustomArray(self,arrIn):
-        num = 12;
+        num = 7;
         if(self.volumes):
-            num = 13;
+            num = 8;
+
 
         arr = arrIn[0:(num * self.bars_count)];
         arr = np.reshape(arr,(self.bars_count,num));
 
-        max = np.amax(arr[:,0:6]);
+        max = np.amax(arr[:,0:4]);
         
-        noZero = np.array( [i if i > 0.0 else max for i in arr[:,0:6].flatten()]);
+        noZero = np.array( [i if i > 0.0 else max for i in arr[:,0:4].flatten()]);
         min = np.amin(noZero);
         for i in range(self.bars_count):
             close_index = (i*num) + 3;
             current_close = arrIn[close_index];
 
-            for j in range(6):
+            for j in range(7):
                 my_index = (i*num)+j;
                 lnum = arrIn[my_index];
                 if(lnum == 0):
                     lnum = min;
                 arrIn[my_index] = ((lnum-min)/(max-min));
-            avgd_index = (i*num)+6;
-            if(arrIn[avgd_index] > current_close):
-                arrIn[avgd_index] = 1;
-            elif (arrIn[avgd_index] < current_close):
-                arrIn[avgd_index] = 0;
-            else:
-                arrIn[avgd_index] = 0.5;
+            avg1 = (i*num) +4
+            avg2 = (i*num) +5
+            avg3 = (i*num) +6
+            if(arrIn[avg1] > 1):
+                arrIn[avg1] = 1;
+            if(arrIn[avg1] < 0):
+                arrIn[avg1] = 0;
             
-        
 
-
-        
+            if(arrIn[avg2] > 1):
+                arrIn[avg2] = 1;
+            if(arrIn[avg2] < 0):
+                arrIn[avg2] = 0;
+            
+            if(arrIn[avg3] > 1):
+                arrIn[avg3] = 1;
+            if(arrIn[avg3] < 0):
+                arrIn[avg3] = 0;
+                    
         return arrIn;
 
     
@@ -124,16 +133,16 @@ class State15:
             shift += 1
             res[shift] = self._prices.avgd[self._offset + bar_idx]
             shift += 1
-            res[shift] = self._prices.month[self._offset + bar_idx]
-            shift += 1
-            res[shift] = self._prices.dayofmonth[self._offset + bar_idx]
-            shift += 1
-            res[shift] = self._prices.dayofweek[self._offset + bar_idx]
-            shift += 1
-            res[shift] = self._prices.hour[self._offset + bar_idx]
-            shift += 1
-            res[shift] = self._prices.minute[self._offset + bar_idx]
-            shift += 1
+            #res[shift] = self._prices.month[self._offset + bar_idx]
+            #shift += 1
+            #res[shift] = self._prices.dayofmonth[self._offset + bar_idx]
+            #shift += 1
+            #res[shift] = self._prices.dayofweek[self._offset + bar_idx]
+            #shift += 1
+            #res[shift] = self._prices.hour[self._offset + bar_idx]
+            #shift += 1
+            #res[shift] = self._prices.minute[self._offset + bar_idx]
+            #shift += 1
             if self.volumes:
                 res[shift] = self._prices.volume[self._offset + bar_idx]
                 shift += 1            
@@ -403,11 +412,12 @@ class StocksEnv(gym.Env):
 
     def __init__(self,env_name,writer, prices, bars_count=DEFAULT_BARS_COUNT,
                  commission=DEFAULT_COMMISSION_PERC, reset_on_close=True,state_15 = True, state_1d=False,
-                 random_ofs_on_reset=True, reward_on_close=False, volumes=False):
+                 random_ofs_on_reset=True, reward_on_close=True, volumes=False):
         assert isinstance(env_name,str)
         assert not (env_name == None or env_name == '')
         assert isinstance(writer,SummaryWriter)
         assert isinstance(prices, dict)
+        self.reward_on_close = reward_on_close
         self._prices = prices
         if state_1d:
             self._state = State1D(bars_count, commission, reset_on_close, reward_on_close=reward_on_close,
@@ -419,9 +429,19 @@ class StocksEnv(gym.Env):
             self._state = State(env_name,writer,bars_count, commission, reset_on_close, reward_on_close=reward_on_close,
                                 volumes=volumes)
         self.action_space = gym.spaces.Discrete(n=len(Actions))
+        self.action_space.sample = (lambda : self.mySample())
+        print("action space sample ",self.action_space.sample())
         self.observation_space = gym.spaces.Box(low=-np.inf, high=np.inf, shape=self._state.shape, dtype=np.float32)
         self.random_ofs_on_reset = random_ofs_on_reset
         self.seed()
+        self._step = 0
+
+    def mySample(self):
+        ret = int( math.floor( (np.random.random() * 30)))
+        if(ret > 2):
+            ret = 0
+        return ret
+
 
     def reset(self):
         # make selection of the instrument and it's offset. Then reset the state
@@ -440,6 +460,11 @@ class StocksEnv(gym.Env):
         reward, done = self._state.step(action)
         obs = self._state.encode()
         info = {"instrument": self._instrument, "offset": self._state._offset}
+        self._step +=1
+        if(self._step == 1):
+            print("obs ",obs)
+            print("reward ",reward)
+            print("reward on close ",self.reward_on_close)
         return obs, reward, done, info
 
     def render(self, mode='human', close=False):
