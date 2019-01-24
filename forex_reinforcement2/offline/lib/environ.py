@@ -15,6 +15,7 @@ DEFAULT_BARS_COUNT = 30
 DEFAULT_COMMISSION_PERC = 0.0
 MAX_GAME_STEPS = 30
 
+RETURN_1_D = False
 
 class Actions(enum.Enum):
     Skip = 0
@@ -55,11 +56,42 @@ class State15:
 
     @property
     def shape(self):
+        if(RETURN_1_D):
+            return self.shape1d()
         # [h, l, c] * bars + position_flag + rel_profit (since open)
         if self.volumes:
             return (8 * self.bars_count + 1 + 1, )
         else:
             return (7*self.bars_count + 1 + 1, )
+    
+    def shape1d(self):
+        if self.volumes:
+            return (10, self.bars_count)
+        else:
+            return (9, self.bars_count)
+
+    def encode1d(self):
+        current_close = self._offset_close()
+        res = np.zeros(shape=self.shape, dtype=np.float32)
+        ofs = self.bars_count-1
+        res[0] = (self._prices.high[self._offset-ofs:self._offset+1] - current_close)/current_close
+        res[1] = (self._prices.low[self._offset-ofs:self._offset+1] - current_close)/current_close
+        res[2] = (self._prices.open[self._offset-ofs:self._offset+1] - current_close)/current_close
+        res[3] = (self._prices.close[self._offset-ofs:self._offset+1] - current_close)/current_close
+        res[4] = (self._prices.avgm[self._offset-ofs:self._offset+1] - current_close)/current_close
+        res[5] = (self._prices.avgh[self._offset-ofs:self._offset+1] - current_close)/current_close
+        res[6] = (self._prices.avgd[self._offset-ofs:self._offset+1] - current_close)/current_close
+        
+        if self.volumes:
+            res[7] = self._prices.volume[self._offset-ofs:self._offset+1]
+            dst = 8
+        else:
+            dst = 7
+        if self.have_position:
+            res[dst] = 1.0
+            res[dst+1] = self.getTrainReward()
+        return res
+
 
     def getMeanReward(self):
         sum = 0
@@ -88,6 +120,8 @@ class State15:
     
     
     def encode(self):
+        if(RETURN_1_D):
+            return self.encode1d()
         """
         Convert current state into numpy array.
         """
