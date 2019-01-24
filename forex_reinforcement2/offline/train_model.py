@@ -15,7 +15,7 @@ from tensorboardX import SummaryWriter
 
 STATE_15 = True
 BATCH_SIZE = 32
-BARS_COUNT = 16
+BARS_COUNT = 30
 TARGET_NET_SYNC = 1000
 DEFAULT_STOCKS = "data/train_data/data_5yr_to_9_2017.csv"
 DEFAULT_VAL_STOCKS = "data/test_data/v2018.csv"
@@ -24,8 +24,8 @@ DEFAULT_VAL_STOCKS = "data/test_data/v2018.csv"
 
 GAMMA = 0.99
 
-REPLAY_SIZE = 1842819
-REPLAY_INITIAL = 10000
+REPLAY_SIZE = 8842819
+REPLAY_INITIAL = 30000
 
 REWARD_STEPS = 2
 
@@ -36,7 +36,7 @@ EVAL_EVERY_STEP = 1000
 
 EPSILON_START = 1.0
 EPSILON_STOP = 0.1
-EPSILON_STEPS = 20000000
+EPSILON_STEPS = 3000000
 
 CHECKPOINT_EVERY_STEP = 1000000
 VALIDATION_EVERY_STEP = 100000
@@ -82,7 +82,7 @@ if __name__ == "__main__":
     net = models.SimpleFFDQN(env.observation_space.shape[0], env.action_space.n).to(device)
     calculateModelParams(net)
     tgt_net = ptan.agent.TargetNet(net)
-    selector = ptan.actions.EpsilonGreedyActionSelector(EPSILON_START)
+    selector = environ.ShohdiEpsilonGreedyActionSelector(EPSILON_START)
     agent = ptan.agent.DQNAgent(net, selector, device=device)
     exp_source = ptan.experience.ExperienceSourceFirstLast(env, agent, GAMMA, steps_count=REWARD_STEPS)
     buffer = ptan.experience.ExperienceReplayBuffer(exp_source, REPLAY_SIZE)

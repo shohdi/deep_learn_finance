@@ -6,11 +6,14 @@ import numpy as np
 import collections
 from tensorboardX import SummaryWriter
 import math
+import ptan
+
 
 from . import data
 
-DEFAULT_BARS_COUNT = 16
+DEFAULT_BARS_COUNT = 30
 DEFAULT_COMMISSION_PERC = 0.0
+MAX_GAME_STEPS = 30
 
 
 class Actions(enum.Enum):
@@ -40,6 +43,7 @@ class State15:
         self.writer = writer
         self.game_done = 0
         self.rewards = collections.deque(maxlen=100)
+        self.game_steps = 0
         
     def reset(self, prices, offset):
         assert isinstance(prices, data.Prices)
@@ -66,47 +70,19 @@ class State15:
         return sum
 
     def normCustomArray(self,arrIn):
+        current_close = self._offset_close()
         num = 7;
         if(self.volumes):
             num = 8;
-
-
-        arr = arrIn[0:(num * self.bars_count)];
-        arr = np.reshape(arr,(self.bars_count,num));
-
-        max = np.amax(arr[:,0:4]);
         
-        noZero = np.array( [i if i > 0.0 else max for i in arr[:,0:4].flatten()]);
-        min = np.amin(noZero);
+  
         for i in range(self.bars_count):
-            close_index = (i*num) + 3;
-            current_close = arrIn[close_index];
+            
 
             for j in range(7):
                 my_index = (i*num)+j;
-                lnum = arrIn[my_index];
-                if(lnum == 0):
-                    lnum = min;
-                arrIn[my_index] = ((lnum-min)/(max-min));
-            avg1 = (i*num) +4
-            avg2 = (i*num) +5
-            avg3 = (i*num) +6
-            if(arrIn[avg1] > 1):
-                arrIn[avg1] = 1;
-            if(arrIn[avg1] < 0):
-                arrIn[avg1] = 0;
-            
-
-            if(arrIn[avg2] > 1):
-                arrIn[avg2] = 1;
-            if(arrIn[avg2] < 0):
-                arrIn[avg2] = 0;
-            
-            if(arrIn[avg3] > 1):
-                arrIn[avg3] = 1;
-            if(arrIn[avg3] < 0):
-                arrIn[avg3] = 0;
-                    
+                arrIn[my_index] = (arrIn[my_index] - current_close)/current_close
+               
         return arrIn;
 
     
@@ -179,6 +155,8 @@ class State15:
        
         return self._prices.bid[self._offset];
         
+    def _offset_close(self):
+        return self._prices.close[self._offset];
 
     def step(self, action):
         """
@@ -195,6 +173,7 @@ class State15:
             self.have_position = True
             self.open_price = self._cur_ashtry();
             reward -= self.commission_perc
+            self.game_steps = 0
         elif action == Actions.Close and self.have_position:
             reward -= self.commission_perc
             done |= self.reset_on_close
@@ -205,6 +184,7 @@ class State15:
             self.game_done+=1
             self.rewards.append(self.getReward())
             self.writer.add_scalar("shohdi-"+self.env_name+"-reward",self.getMeanReward(),self.game_done)
+            self.game_steps = 0
             self.have_position = False
             self.open_price = 0.0
         elif self.getReward() <= -0.5 and self.have_position:
@@ -217,9 +197,24 @@ class State15:
             self.game_done+=1
             self.rewards.append(self.getReward())
             self.writer.add_scalar("shohdi-"+self.env_name+"-reward",self.getMeanReward(),self.game_done)
+            self.game_steps = 0
             self.have_position = False
             self.open_price = 0.0
-
+        elif self.game_steps >= MAX_GAME_STEPS and self.have_position:
+            reward -= self.commission_perc
+            done |= self.reset_on_close
+            if self.reward_on_close:
+                reward += self.getTrainReward();
+            else:
+                reward -= 0.05; #spread
+            self.game_done+=1
+            self.rewards.append(self.getReward())
+            self.writer.add_scalar("shohdi-"+self.env_name+"-reward",self.getMeanReward(),self.game_done)
+            self.game_steps = 0
+            self.have_position = False
+            self.open_price = 0.0
+        if(self.have_position):
+            self.game_steps +=1
         self._offset += 1
         prev_close = close
         close = self._cur_close()
@@ -252,7 +247,7 @@ class State:
         self.writer = writer
         self.game_done = 0
         self.rewards = collections.deque(maxlen=100)
-
+        
     def getMeanReward(self):
         sum = 0
         for i in range(len(self.rewards)):
@@ -366,7 +361,7 @@ class State:
             self.writer.add_scalar("shohdi-"+self.env_name+"-reward",self.getMeanReward(),self.game_done)
             self.have_position = False
             self.open_price = 0.0
-
+            
 
         self._offset += 1
         prev_close = close
@@ -482,3 +477,22 @@ class StocksEnv(gym.Env):
     def from_dir(cls, data_dir, **kwargs):
         prices = {file: data.load_relative(file) for file in data.price_files(data_dir)}
         return StocksEnv(prices, **kwargs)
+
+
+
+class ShohdiEpsilonGreedyActionSelector(ptan.actions.EpsilonGreedyActionSelector):
+    def __init__(self, epsilon=0.05, selector=None):
+        super(ShohdiEpsilonGreedyActionSelector, self).__init__(epsilon,selector)
+        
+
+    def __call__(self, scores):
+        assert isinstance(scores, np.ndarray)
+        batch_size,n_actions = scores.shape
+        first_act = n_actions
+        n_actions = n_actions * 5
+        actions = self.selector(scores)
+        mask = np.random.random(size=batch_size) < self.epsilon
+        rand_actions = np.random.choice(n_actions, sum(mask))
+        rand_actions = np.array(list(map(lambda v : v if v < first_act else 0  ,rand_actions)),dtype=np.int)
+        actions[mask] = rand_actions
+        return actions
