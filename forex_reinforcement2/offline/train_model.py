@@ -13,6 +13,7 @@ from lib import environ, data, models, common, validation
 
 from tensorboardX import SummaryWriter
 
+CONV_1D = False
 STATE_15 = True
 BATCH_SIZE = 32
 BARS_COUNT = 30
@@ -78,8 +79,11 @@ if __name__ == "__main__":
     val_data = {"EURUSD": data.load_relative(args.valdata,not STATE_15)}
     env_val = environ.StocksEnv("validation",writer,val_data, bars_count=BARS_COUNT, reset_on_close=True, state_15=STATE_15,state_1d=False, volumes=False)
 
-    
-    net = models.SimpleFFDQN(env.observation_space.shape[0], env.action_space.n).to(device)
+    net = None
+    if CONV_1D:
+        net = models.DQNConv1D(env.observation_space.shape, env.action_space.n).to(device)
+    else:
+        net = models.SimpleFFDQN(env.observation_space.shape[0], env.action_space.n).to(device)
     calculateModelParams(net)
     tgt_net = ptan.agent.TargetNet(net)
     selector = environ.ShohdiEpsilonGreedyActionSelector(EPSILON_START)
