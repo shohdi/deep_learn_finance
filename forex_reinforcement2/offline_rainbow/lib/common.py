@@ -6,6 +6,20 @@ import torch.nn as nn
 
 
 HYPERPARAMS = {
+    'shohdi': {
+        'env_name':         "shohdi-v1",
+        'stop_reward':      100,
+        'run_name':         'shohdi-forex1',
+        'replay_size':      8000000,
+        'replay_initial':   10000,
+        'target_net_sync':  1000,
+        'epsilon_frames':   10**6,
+        'epsilon_start':    1.0,
+        'epsilon_final':    0.02,
+        'learning_rate':    0.0001,
+        'gamma':            0.99,
+        'batch_size':       32
+    },
     'pong': {
         'env_name':         "PongNoFrameskip-v4",
         'stop_reward':      18.0,
