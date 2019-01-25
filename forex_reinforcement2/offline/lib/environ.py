@@ -45,7 +45,54 @@ class State15:
         self.game_done = 0
         self.rewards = collections.deque(maxlen=100)
         self.game_steps = 0
-        
+    
+    def getMaxMin(self):
+        max = 0.0;
+        min = 9999999.0;
+        maxAvg = 0.0;
+        minAvg = 9999999.0;
+
+        for bar_idx in range(-self.bars_count+1, 1):
+            val = self._prices.high[self._offset + bar_idx]
+            if(val > 0 and val < min):
+                min = val
+            if(val > max):
+                max = val;
+            val = self._prices.low[self._offset + bar_idx]
+            if(val > 0 and val < min):
+                min = val
+            if(val > max):
+                max = val;
+            
+            val = self._prices.avgd[self._offset + bar_idx]
+            if(val > 0 and val < minAvg):
+                minAvg = val
+            if(val > maxAvg):
+                maxAvg = val;
+            
+            val = self._prices.avgh[self._offset + bar_idx]
+            if(val > 0 and val < minAvg):
+                minAvg = val
+            if(val > maxAvg):
+                maxAvg = val;
+            
+            val = self._prices.avgm[self._offset + bar_idx]
+            if(val > 0 and val < minAvg):
+                minAvg = val
+            if(val > maxAvg):
+                maxAvg = val;
+
+            val = self._prices.close[self._offset + bar_idx]
+            if(val > 0 and val < minAvg):
+                minAvg = val
+            if(val > maxAvg):
+                maxAvg = val;
+            
+        return min,max,minAvg,maxAvg
+            
+
+
+
     def reset(self, prices, offset):
         assert isinstance(prices, data.Prices)
         assert offset >= self.bars_count-1
@@ -60,33 +107,36 @@ class State15:
             return self.shape1d()
         # [h, l, c] * bars + position_flag + rel_profit (since open)
         if self.volumes:
-            return (8 * self.bars_count + 1 + 1, )
+            return (9 * self.bars_count + 1 + 1, )
         else:
-            return (7*self.bars_count + 1 + 1, )
+            return (8*self.bars_count + 1 + 1, )
     
     def shape1d(self):
         if self.volumes:
-            return (10, self.bars_count)
+            return (11, self.bars_count)
         else:
-            return (9, self.bars_count)
+            return (10, self.bars_count)
 
     def encode1d(self):
-        current_close = self._offset_close()
+        min,max,minAvg,maxAvg = self.getMaxMin()
+        deviaAvg = maxAvg - minAvg
+        devia = max-min
         res = np.zeros(shape=self.shape, dtype=np.float32)
         ofs = self.bars_count-1
-        res[0] = (self._prices.high[self._offset-ofs:self._offset+1] - current_close)/current_close
-        res[1] = (self._prices.low[self._offset-ofs:self._offset+1] - current_close)/current_close
-        res[2] = (self._prices.open[self._offset-ofs:self._offset+1] - current_close)/current_close
-        res[3] = (self._prices.close[self._offset-ofs:self._offset+1] - current_close)/current_close
-        res[4] = (self._prices.avgm[self._offset-ofs:self._offset+1] - current_close)/current_close
-        res[5] = (self._prices.avgh[self._offset-ofs:self._offset+1] - current_close)/current_close
-        res[6] = (self._prices.avgd[self._offset-ofs:self._offset+1] - current_close)/current_close
+        res[0] = (self._prices.high[self._offset-ofs:self._offset+1] - min)/devia
+        res[1] = (self._prices.low[self._offset-ofs:self._offset+1] - min)/devia
+        res[2] = (self._prices.open[self._offset-ofs:self._offset+1] - min)/devia
+        res[3] = (self._prices.close[self._offset-ofs:self._offset+1] - min)/devia
+        res[4] = (self._prices.avgm[self._offset-ofs:self._offset+1] - minAvg)/deviaAvg
+        res[5] = (self._prices.avgh[self._offset-ofs:self._offset+1] - minAvg)/deviaAvg
+        res[6] = (self._prices.avgd[self._offset-ofs:self._offset+1] - minAvg)/deviaAvg
+        res[7] = (self._prices.close[self._offset-ofs:self._offset+1] - minAvg)/deviaAvg
         
         if self.volumes:
-            res[7] = self._prices.volume[self._offset-ofs:self._offset+1]
-            dst = 8
+            res[8] = self._prices.volume[self._offset-ofs:self._offset+1]
+            dst = 9
         else:
-            dst = 7
+            dst = 8
         if self.have_position:
             res[dst] = 1.0
             res[dst+1] = self.getTrainReward()
@@ -101,27 +151,16 @@ class State15:
         sum /= len(self.rewards)
         return sum
 
-    def normCustomArray(self,arrIn):
-        current_close = self._offset_close()
-        num = 7;
-        if(self.volumes):
-            num = 8;
-        
-  
-        for i in range(self.bars_count):
-            
 
-            for j in range(7):
-                my_index = (i*num)+j;
-                arrIn[my_index] = (arrIn[my_index] - current_close)/current_close
-               
-        return arrIn;
 
     
     
     def encode(self):
         if(RETURN_1_D):
             return self.encode1d()
+        min,max,minAvg,maxAvg = self.getMaxMin()
+        deviaAvg = maxAvg - minAvg
+        devia = max-min
         """
         Convert current state into numpy array.
         """
@@ -129,19 +168,21 @@ class State15:
         shift = 0
         for bar_idx in range(-self.bars_count+1, 1):
             #'high','low','open','close','avgm','avgh','avgd','month','dayofmonth','dayofweek','hour','minute','ask','bid','volume'
-            res[shift] = self._prices.high[self._offset + bar_idx]
+            res[shift] = (self._prices.high[self._offset + bar_idx] - min)/devia
             shift += 1
-            res[shift] = self._prices.low[self._offset + bar_idx]
+            res[shift] = (self._prices.low[self._offset + bar_idx] - min)/devia
             shift += 1
-            res[shift] = self._prices.open[self._offset + bar_idx]
+            res[shift] = (self._prices.open[self._offset + bar_idx] - min)/devia
             shift += 1
-            res[shift] = self._prices.close[self._offset + bar_idx]
+            res[shift] = (self._prices.close[self._offset + bar_idx] - min)/devia
             shift += 1
-            res[shift] = self._prices.avgm[self._offset + bar_idx]
+            res[shift] = (self._prices.avgm[self._offset + bar_idx] - minAvg)/deviaAvg
             shift += 1
-            res[shift] = self._prices.avgh[self._offset + bar_idx]
+            res[shift] = (self._prices.avgh[self._offset + bar_idx] - minAvg)/deviaAvg
             shift += 1
-            res[shift] = self._prices.avgd[self._offset + bar_idx]
+            res[shift] = (self._prices.avgd[self._offset + bar_idx] - minAvg)/deviaAvg
+            shift += 1
+            res[shift] = (self._prices.close[self._offset + bar_idx] - minAvg)/deviaAvg
             shift += 1
             #res[shift] = self._prices.month[self._offset + bar_idx]
             #shift += 1
@@ -160,7 +201,7 @@ class State15:
         shift += 1
         res[shift] = self.getTrainReward();
         
-        res = self.normCustomArray(res);
+        
         return res
 
     def getTrainReward(self):
