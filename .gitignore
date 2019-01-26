@@ -37,3 +37,6 @@ forex_reinforcement2/saves/*
 forex_reinforcement2/offline_rainbow/res/*
 forex_reinforcement2/offline_rainbow/runs/*
 forex_reinforcement2/offline_rainbow/data/*
+forex_reinforcement2/very_simple_2018/data/*
+forex_reinforcement2/very_simple_2018/res/*
+forex_reinforcement2/very_simple_2018/runs/*
