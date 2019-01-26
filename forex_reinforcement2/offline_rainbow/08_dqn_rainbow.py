@@ -211,8 +211,8 @@ if __name__ == "__main__":
             if frame_idx % VALIDATION_EVERY_STEP == 0:
                 res = validation.validation_run(env_tst, net, device=device,epsilon=0.0)
                 for key, val in res.items():
-                    writer.add_scalar(key + "_test", val, step_idx)
+                    writer.add_scalar(key + "_test", val, frame_idx)
                 res = validation.validation_run(env_val, net, device=device,epsilon=0.0)
                 for key, val in res.items():
-                    writer.add_scalar(key + "_val", val, step_idx)
+                    writer.add_scalar(key + "_val", val, frame_idx)
             

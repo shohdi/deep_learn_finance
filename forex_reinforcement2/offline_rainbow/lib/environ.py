@@ -16,6 +16,8 @@ DEFAULT_COMMISSION_PERC = 0.0
 MAX_GAME_STEPS = 60
 STOP_AT_MAX_STEPS = False
 
+STOP_LOSS_T_R = 0.043*10
+
 RETURN_1_D = True
 
 class Actions(enum.Enum):
@@ -270,7 +272,7 @@ class State15:
             self.game_steps = 0
             self.have_position = False
             self.open_price = 0.0
-        elif self.getReward() <= -0.5 and self.have_position:
+        elif self.getTrainReward() <= (-1 * STOP_LOSS_T_R) and self.have_position:
             reward -= self.commission_perc
             done |= self.reset_on_close
             if self.reward_on_close:
