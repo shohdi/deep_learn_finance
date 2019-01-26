@@ -135,6 +135,11 @@ def calc_loss(batch, batch_weights, net, tgt_net, gamma, device="cpu"):
     loss_v = batch_weights_v * loss_v.sum(dim=1)
     return loss_v.mean(), loss_v + 1e-5
 
+def calculateModelParams(net):
+    model_parameters = filter(lambda p: p.requires_grad, net.parameters())
+    params = sum([np.prod(p.size()) for p in model_parameters])
+    print(params)
+
 
 if __name__ == "__main__":
     params = common.HYPERPARAMS['shohdi']
@@ -161,6 +166,7 @@ if __name__ == "__main__":
     env_val = environ.StocksEnv("validation",writer,val_data, bars_count=BARS_COUNT, reset_on_close=True, state_15=STATE_15,state_1d=False, volumes=False)
 
     net = RainbowDQN(env.observation_space.shape, env.action_space.n).to(device)
+    calculateModelParams(net)
     tgt_net = ptan.agent.TargetNet(net)
     agent = ptan.agent.DQNAgent(lambda x: net.qvals(x), ptan.actions.ArgmaxActionSelector(), device=device)
 
