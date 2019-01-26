@@ -3,9 +3,10 @@ import numpy as np
 import torch
 
 from lib import environ
+import ptan
 
 
-def validation_run(env, net, episodes=100, device="cpu", epsilon=0.02, comission=0.0):
+def validation_run(env, net, episodes=100, device="cpu", epsilon=0.00, comission=0.0):
     stats = {
         'episode_reward': [],
         'episode_steps': [],
@@ -13,19 +14,21 @@ def validation_run(env, net, episodes=100, device="cpu", epsilon=0.02, comission
         'order_steps': [],
     }
 
+    val_agent = ptan.agent.DQNAgent(lambda x: net.qvals(x), ptan.actions.ArgmaxActionSelector(), device=device)
+
     for episode in range(episodes):
         obs = env.reset()
-
+        
         total_reward = 0.0
         position = None
         position_steps = None
         episode_steps = 0
 
         while True:
-            obs_v = torch.tensor([obs]).to(device)
-            out_v = net(obs_v)
-
-            action_idx = out_v.max(dim=1)[1].item()
+            obs_v = [obs]
+            out_v,_ = val_agent(obs_v)
+            action_idx = out_v[0]
+            #action_idx = out_v.max(dim=1)[1].item()
             if np.random.random() < epsilon:
                 action_idx = env.action_space.sample()
             action = environ.Actions(action_idx)
