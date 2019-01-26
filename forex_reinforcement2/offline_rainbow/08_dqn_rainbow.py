@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import os
 import gym
 from gym import wrappers
 
@@ -14,7 +15,17 @@ import torch.optim as optim
 
 from tensorboardX import SummaryWriter
 
-from lib import dqn_model, common
+from lib import dqn_model, common,environ, data, validation
+
+
+DEFAULT_STOCKS = "data/train_data/data_5yr_to_9_2017.csv"
+DEFAULT_VAL_STOCKS = "data/test_data/v2018.csv"
+#DEFAULT_STOCKS = "/home/shohdi/projects/deep_learn_finance/forex_reinforcement2/offline/data/train_data/year_1.csv"
+#DEFAULT_VAL_STOCKS = "/home/shohdi/projects/deep_learn_finance/forex_reinforcement2/offline/data/train_data/year_2.csv"
+STATE_15 = True
+BARS_COUNT = 16
+CHECKPOINT_EVERY_STEP = 1000000
+VALIDATION_EVERY_STEP = 100000
 
 # n-step
 REWARD_STEPS = 2
@@ -34,15 +45,15 @@ DELTA_Z = (Vmax - Vmin) / (N_ATOMS - 1)
 class RainbowDQN(nn.Module):
     def __init__(self, input_shape, n_actions):
         super(RainbowDQN, self).__init__()
-
         self.conv = nn.Sequential(
-            nn.Conv2d(input_shape[0], 32, kernel_size=8, stride=4),
+            nn.Conv1d(input_shape[0], 128, 5),
             nn.ReLU(),
-            nn.Conv2d(32, 64, kernel_size=4, stride=2),
+            nn.Conv1d(128, 256, 5),
             nn.ReLU(),
-            nn.Conv2d(64, 64, kernel_size=3, stride=1),
-            nn.ReLU()
+            nn.Conv1d(256, 256, 5),
+            nn.ReLU(),
         )
+        
 
         conv_out_size = self._get_conv_out(input_shape)
         self.fc_val = nn.Sequential(
@@ -126,17 +137,29 @@ def calc_loss(batch, batch_weights, net, tgt_net, gamma, device="cpu"):
 
 
 if __name__ == "__main__":
-    params = common.HYPERPARAMS['pong']
+    params = common.HYPERPARAMS['shohdi']
     params['epsilon_frames'] *= 2
     parser = argparse.ArgumentParser()
     parser.add_argument("--cuda", default=True, action="store_true", help="Enable cuda")
+    parser.add_argument("--data", default=DEFAULT_STOCKS, action="store_true", help="data file")
+    parser.add_argument("--valdata", default=DEFAULT_VAL_STOCKS, action="store_true", help="validation data file")
+    parser.add_argument("-r", "--run", default="shohdi-forex", help="Run name")
     args = parser.parse_args()
     device = torch.device("cuda" if args.cuda else "cpu")
 
-    env = gym.make(params['env_name'])
-    env = ptan.common.wrappers.wrap_dqn(env)
+    saves_path = os.path.join("saves", args.run)
+    os.makedirs(saves_path, exist_ok=True)
 
-    writer = SummaryWriter(comment="-" + params['run_name'] + "-rainbow")
+    writer = SummaryWriter(comment="-" + args.run + "-rainbow")
+
+
+    stock_data = {"EURUSD": data.load_relative(args.data,not STATE_15)}
+    env = environ.StocksEnv("train",writer,stock_data, bars_count=BARS_COUNT, reset_on_close=True,state_15=STATE_15, state_1d=False, volumes=False)
+    env_tst = environ.StocksEnv("test",writer,stock_data, bars_count=BARS_COUNT, reset_on_close=True,state_15=STATE_15, state_1d=False, volumes=False)
+
+    val_data = {"EURUSD": data.load_relative(args.valdata,not STATE_15)}
+    env_val = environ.StocksEnv("validation",writer,val_data, bars_count=BARS_COUNT, reset_on_close=True, state_15=STATE_15,state_1d=False, volumes=False)
+
     net = RainbowDQN(env.observation_space.shape, env.action_space.n).to(device)
     tgt_net = ptan.agent.TargetNet(net)
     agent = ptan.agent.DQNAgent(lambda x: net.qvals(x), ptan.actions.ArgmaxActionSelector(), device=device)
@@ -172,3 +195,18 @@ if __name__ == "__main__":
 
             if frame_idx % params['target_net_sync'] == 0:
                 tgt_net.sync()
+            
+            '''
+            
+            if frame_idx % CHECKPOINT_EVERY_STEP == 0:
+                idx = frame_idx // CHECKPOINT_EVERY_STEP
+                torch.save(net.state_dict(), os.path.join(saves_path, "checkpoint-%3d.data" % idx))
+
+            if frame_idx % VALIDATION_EVERY_STEP == 0:
+                res = validation.validation_run(env_tst, net, device=device,epsilon=0.0)
+                for key, val in res.items():
+                    writer.add_scalar(key + "_test", val, step_idx)
+                res = validation.validation_run(env_val, net, device=device,epsilon=0.0)
+                for key, val in res.items():
+                    writer.add_scalar(key + "_val", val, step_idx)
+            '''

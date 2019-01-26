@@ -16,7 +16,7 @@ DEFAULT_COMMISSION_PERC = 0.0
 MAX_GAME_STEPS = 60
 STOP_AT_MAX_STEPS = False
 
-RETURN_1_D = False
+RETURN_1_D = True
 
 class Actions(enum.Enum):
     Skip = 0
