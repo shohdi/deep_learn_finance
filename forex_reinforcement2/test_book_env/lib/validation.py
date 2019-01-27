@@ -6,7 +6,7 @@ from lib import environ
 import ptan
 
 
-def validation_run(env, net, episodes=100, device="cpu", epsilon=0.00, comission=0.0):
+def validation_run(env, net, episodes=100, device="cpu", epsilon=0.02, comission=0.025):
     stats = {
         'episode_reward': [],
         'episode_steps': [],
@@ -18,7 +18,7 @@ def validation_run(env, net, episodes=100, device="cpu", epsilon=0.00, comission
 
     for episode in range(episodes):
         obs = env.reset()
-        
+
         total_reward = 0.0
         position = None
         position_steps = None

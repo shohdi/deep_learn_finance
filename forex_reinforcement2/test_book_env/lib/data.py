@@ -4,9 +4,8 @@ import glob
 import numpy as np
 import collections
 
-#<high>,<low>,<open>,<close>,<avgm>,<avgh>,<avgd>,<month>,<dayofmonth>,<dayofweek>,<hour>,<minute>,<ask>,<bid>,<volume>
-#'high','low','open','close','avgm','avgh','avgd','month','dayofmonth','dayofweek','hour','minute','ask','bid','volume'
-Prices = collections.namedtuple('Prices', field_names=['high','low','open','close','avgm','avgh','avgd','month','dayofmonth','dayofweek','hour','minute','ask','bid','volume'])
+
+Prices = collections.namedtuple('Prices', field_names=['open', 'high', 'low', 'close', 'volume'])
 
 
 def read_csv(file_name, sep=',', filter_data=True, fix_open_price=False):
@@ -14,72 +13,44 @@ def read_csv(file_name, sep=',', filter_data=True, fix_open_price=False):
     with open(file_name, 'rt', encoding='utf-8') as fd:
         reader = csv.reader(fd, delimiter=sep)
         h = next(reader)
-        if '<high>' not in h and sep == ',':
+        if '<OPEN>' not in h and sep == ',':
             return read_csv(file_name, ';')
-        indices = [h.index(s) for s in ('<high>','<low>','<open>','<close>','<avgm>','<avgh>','<avgd>','<month>','<dayofmonth>','<dayofweek>','<hour>','<minute>','<ask>','<bid>')]
-        high,low,myopen,close,avgm,avgh,avgd,month,dayofmonth,dayofweek,hour,minute,ask,bid =  [], [], [], [],[],[],[],[],[],[],[],[],[],[]
+        indices = [h.index(s) for s in ('<OPEN>', '<HIGH>', '<LOW>', '<CLOSE>', '<VOL>')]
+        o, h, l, c, v = [], [], [], [], []
         count_out = 0
         count_filter = 0
         count_fixed = 0
         prev_vals = None
         for row in reader:
             vals = list(map(float, [row[idx] for idx in indices]))
-            if filter_data and any(map(lambda v: v <= 0, vals[0:4])):
+            if filter_data and all(map(lambda v: abs(v-vals[0]) < 1e-8, vals[:-1])):
                 count_filter += 1
                 continue
 
-            phigh,plow,popen,pclose,pavgm,pavgh,pavgd,pmonth,pdayofmonth,pdayofweek,phour,pminute,pask,pbid = vals
+            po, ph, pl, pc, pv = vals
 
             # fix open price for current bar to match close price for the previous bar
             if fix_open_price and prev_vals is not None:
-                pphigh,pplow,ppopen,ppclose,ppavgm,ppavgh,ppavgd,ppmonth,ppdayofmonth,ppdayofweek,pphour,ppminute,ppask,ppbid = prev_vals
-                if abs(popen - ppclose) > 1e-8:
+                ppo, pph, ppl, ppc, ppv = vals
+                if abs(po - ppc) > 1e-8:
                     count_fixed += 1
-                    popen = ppclose
-                    plow = min(plow, popen)
-                    phigh = max(phigh, popen)
+                    po = ppc
+                    pl = min(pl, po)
+                    ph = max(ph, po)
             count_out += 1
-
-            
-            high.append(phigh);
-            low.append(plow);
-            myopen.append(popen);
-            close.append(pclose);
-            avgm.append(pavgm);
-            avgh.append(pavgh);
-            avgd.append(pavgd);
-            month.append(pmonth);
-            dayofmonth.append(pdayofmonth);
-            dayofweek.append(pdayofweek);
-            hour.append(phour);
-            minute.append(pminute);
-            ask.append(pask);
-            bid.append(pbid);
-
-
-
+            o.append(po)
+            c.append(pc)
+            h.append(ph)
+            l.append(pl)
+            v.append(pv)
             prev_vals = vals
-
-
     print("Read done, got %d rows, %d filtered, %d open prices adjusted" % (
         count_filter + count_out, count_filter, count_fixed))
-    
-    return Prices(high=np.array(high, dtype=np.float32),
-                  low=np.array(low, dtype=np.float32),
-                  open=np.array(myopen, dtype=np.float32),
-                  close=np.array(close, dtype=np.float32),
-                  avgm=np.array(avgm, dtype=np.float32),
-                  avgh=np.array(avgh, dtype=np.float32),
-                  avgd=np.array(avgd, dtype=np.float32),
-                  month=np.array(month, dtype=np.float32),
-                  dayofmonth=np.array(dayofmonth, dtype=np.float32),
-                  dayofweek=np.array(dayofweek, dtype=np.float32),
-                  hour=np.array(hour, dtype=np.float32),
-                  minute=np.array(minute, dtype=np.float32),
-                  ask=np.array(ask, dtype=np.float32),
-                  bid=np.array(bid, dtype=np.float32),
-                  volume = None)
-                  
+    return Prices(open=np.array(o, dtype=np.float32),
+                  high=np.array(h, dtype=np.float32),
+                  low=np.array(l, dtype=np.float32),
+                  close=np.array(c, dtype=np.float32),
+                  volume=np.array(v, dtype=np.float32))
 
 
 def prices_to_relative(prices):
@@ -92,26 +63,11 @@ def prices_to_relative(prices):
     rh = (prices.high - prices.open) / prices.open
     rl = (prices.low - prices.open) / prices.open
     rc = (prices.close - prices.open) / prices.open
-    return Prices(open=prices.open, high=rh, low=rl, close=rc,
-                  avgm=prices.avgm,
-                  avgh=prices.avgh,
-                  avgd=prices.avgd,
-                  month=prices.month,
-                  dayofmonth=prices.dayofmonth,
-                  dayofweek=prices.dayofweek,
-                  hour=prices.hour,
-                  minute=prices.minute,
-                  ask=prices.ask,
-                  bid=prices.bid,
-                  volume = prices.volume)
+    return Prices(open=prices.open, high=rh, low=rl, close=rc, volume=prices.volume)
 
 
-def load_relative(csv_file,isRelative):
-	assert isinstance(isRelative,bool)
-	if(isRelative):
-		return prices_to_relative(read_csv(csv_file))
-	else:
-		return read_csv(csv_file)
+def load_relative(csv_file):
+    return prices_to_relative(read_csv(csv_file))
 
 
 def price_files(dir_name):
