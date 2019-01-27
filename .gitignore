@@ -23,20 +23,11 @@ forex_reinforcement/.iptable_fix.txt.swp
 forex_reinforcement/.run_help.txt.swp
 forex_reinforcement/run_help.txt.save
 forex_reinforcement/.vscode/settings.json
-forex_reinforcement2/offline/runs/*
-forex_reinforcement2/offline/saves/*
-
-forex_reinforcement2/runs/*
-
-forex_reinforcement2/offline/data/test_data/v2018.csv
-forex_reinforcement2/offline/data/train_data/data_5yr_to_9_2017.csv
-forex_reinforcement2/saves/*
+forex_reinforcement2/**/saves/*
+forex_reinforcement2/**/runs/*
+forex_reinforcement2/**/res/*
+forex_reinforcement2/**/data/*
 
 
 
-forex_reinforcement2/offline_rainbow/res/*
-forex_reinforcement2/offline_rainbow/runs/*
-forex_reinforcement2/offline_rainbow/data/*
-forex_reinforcement2/very_simple_2018/data/*
-forex_reinforcement2/very_simple_2018/res/*
-forex_reinforcement2/very_simple_2018/runs/*
+
