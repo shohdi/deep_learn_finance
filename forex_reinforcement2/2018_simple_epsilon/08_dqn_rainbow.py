@@ -19,9 +19,9 @@ from lib import dqn_model, common,environ, data, validation
 
 
 DEFAULT_STOCKS = "data/train_data/year_2.csv"
-DEFAULT_VAL_STOCKS = "data/test_data/v2018.csv"
-DEFAULT_STOCKS = "/home/shohdi/projects/deep_learn_finance/forex_reinforcement2/offline/data/train_data/year_1.csv"
-DEFAULT_VAL_STOCKS = "/home/shohdi/projects/deep_learn_finance/forex_reinforcement2/offline/data/train_data/year_2.csv"
+DEFAULT_VAL_STOCKS = "data/test_data/year_1.csv"
+#DEFAULT_STOCKS = "/home/shohdi/projects/deep_learn_finance/forex_reinforcement2/offline/data/train_data/year_2.csv"
+#DEFAULT_VAL_STOCKS = "/home/shohdi/projects/deep_learn_finance/forex_reinforcement2/offline/data/train_data/year_1.csv"
 STATE_15 = True
 BARS_COUNT = 10
 CHECKPOINT_EVERY_STEP = 1000000
@@ -179,7 +179,11 @@ if __name__ == "__main__":
     net = RainbowDQN(env.observation_space.shape, env.action_space.n).to(device)
     calculateModelParams(net)
     tgt_net = ptan.agent.TargetNet(net)
-    agent = ptan.agent.DQNAgent(lambda x: net.qvals(x), ptan.actions.ArgmaxActionSelector(), device=device)
+    EPSILON_START = params["epsilon_start"]
+    EPSILON_STEPS = params["epsilon_frames"]
+    EPSILON_STOP =  params["epsilon_final"]
+    selector = environ.ShohdiEpsilonGreedyActionSelector(EPSILON_START)
+    agent = ptan.agent.DQNAgent(lambda x: net.qvals(x), selector, device=device)
 
     exp_source = ptan.experience.ExperienceSourceFirstLast(env, agent, gamma=params['gamma'], steps_count=REWARD_STEPS)
     buffer = ptan.experience.PrioritizedReplayBuffer(exp_source, params['replay_size'], PRIO_REPLAY_ALPHA)
@@ -192,11 +196,12 @@ if __name__ == "__main__":
         while True:
             frame_idx += 1
             buffer.populate(1)
+            selector.epsilon = max(EPSILON_STOP, EPSILON_START - frame_idx / EPSILON_STEPS)
             beta = min(1.0, BETA_START + frame_idx * (1.0 - BETA_START) / BETA_FRAMES)
 
             new_rewards = exp_source.pop_rewards_steps()
             if new_rewards:
-                if reward_tracker.reward(new_rewards[0], frame_idx):
+                if reward_tracker.reward(new_rewards[0], frame_idx, selector.epsilon):
                     break
 
             if len(buffer) < params['replay_initial']:
