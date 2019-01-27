@@ -18,12 +18,12 @@ from tensorboardX import SummaryWriter
 from lib import dqn_model, common,environ, data, validation
 
 
-DEFAULT_STOCKS = "data/train_data/data_5yr_to_9_2017.csv"
+DEFAULT_STOCKS = "data/train_data/year_2.csv"
 DEFAULT_VAL_STOCKS = "data/test_data/v2018.csv"
-#DEFAULT_STOCKS = "/home/shohdi/projects/deep_learn_finance/forex_reinforcement2/offline/data/train_data/year_1.csv"
-#DEFAULT_VAL_STOCKS = "/home/shohdi/projects/deep_learn_finance/forex_reinforcement2/offline/data/train_data/year_2.csv"
+DEFAULT_STOCKS = "/home/shohdi/projects/deep_learn_finance/forex_reinforcement2/offline/data/train_data/year_1.csv"
+DEFAULT_VAL_STOCKS = "/home/shohdi/projects/deep_learn_finance/forex_reinforcement2/offline/data/train_data/year_2.csv"
 STATE_15 = True
-BARS_COUNT = 16
+BARS_COUNT = 10
 CHECKPOINT_EVERY_STEP = 1000000
 VALIDATION_EVERY_STEP = 100000
 
@@ -45,13 +45,24 @@ DELTA_Z = (Vmax - Vmin) / (N_ATOMS - 1)
 class RainbowDQN(nn.Module):
     def __init__(self, input_shape, n_actions):
         super(RainbowDQN, self).__init__()
+        '''
         self.conv = nn.Sequential(
             nn.Conv1d(input_shape[0], 128, 5),
             nn.ReLU(),
             nn.Conv1d(128, 256, 5),
             nn.ReLU(),
             nn.Conv1d(256, 256, 5),
+            nn.ReLU()
+        )
+        '''
+
+        self.conv = nn.Sequential(
+            nn.Linear(input_shape[0], 1024),
             nn.ReLU(),
+            nn.Linear(1024, 1024),
+            nn.ReLU(),
+            nn.Linear(1024, 1024),
+            nn.ReLU()
         )
         
 

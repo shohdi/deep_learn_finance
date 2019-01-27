@@ -18,7 +18,7 @@ STOP_AT_MAX_STEPS = False
 
 STOP_LOSS_T_R = 0.043*10
 
-RETURN_1_D = True
+RETURN_1_D = False
 
 class Actions(enum.Enum):
     Skip = 0
@@ -111,15 +111,15 @@ class State15:
             return self.shape1d()
         # [h, l, c] * bars + position_flag + rel_profit (since open)
         if self.volumes:
-            return (9 * self.bars_count + 1 + 1, )
+            return (4 * self.bars_count + 1 + 1, )
         else:
-            return (8*self.bars_count + 1 + 1, )
+            return (3*self.bars_count + 1 + 1, )
     
     def shape1d(self):
         if self.volumes:
-            return (11, self.bars_count)
+            return (6, self.bars_count)
         else:
-            return (10, self.bars_count)
+            return (5, self.bars_count)
 
     def encode1d(self):
         min,max,minAvg,maxAvg = self.getMaxMin()
@@ -129,18 +129,18 @@ class State15:
         ofs = self.bars_count-1
         res[0] = (self._prices.high[self._offset-ofs:self._offset+1] - min)/devia
         res[1] = (self._prices.low[self._offset-ofs:self._offset+1] - min)/devia
-        res[2] = (self._prices.open[self._offset-ofs:self._offset+1] - min)/devia
-        res[3] = (self._prices.close[self._offset-ofs:self._offset+1] - min)/devia
-        res[4] = (self._prices.avgm[self._offset-ofs:self._offset+1] - minAvg)/deviaAvg
-        res[5] = (self._prices.avgh[self._offset-ofs:self._offset+1] - minAvg)/deviaAvg
-        res[6] = (self._prices.avgd[self._offset-ofs:self._offset+1] - minAvg)/deviaAvg
-        res[7] = (self._prices.close[self._offset-ofs:self._offset+1] - minAvg)/deviaAvg
+        res[2] = (self._prices.close[self._offset-ofs:self._offset+1] - min)/devia
+        #res[3] = (self._prices.open[self._offset-ofs:self._offset+1] - min)/devia
+        #res[4] = (self._prices.avgm[self._offset-ofs:self._offset+1] - minAvg)/deviaAvg
+        #res[5] = (self._prices.avgh[self._offset-ofs:self._offset+1] - minAvg)/deviaAvg
+        #res[6] = (self._prices.avgd[self._offset-ofs:self._offset+1] - minAvg)/deviaAvg
+        #res[7] = (self._prices.close[self._offset-ofs:self._offset+1] - minAvg)/deviaAvg
         
         if self.volumes:
-            res[8] = self._prices.volume[self._offset-ofs:self._offset+1]
-            dst = 9
+            res[3] = self._prices.volume[self._offset-ofs:self._offset+1]
+            dst = 4
         else:
-            dst = 8
+            dst = 3
         if self.have_position:
             res[dst] = 1.0
             res[dst+1] = self.getTrainReward()
@@ -180,9 +180,10 @@ class State15:
             shift += 1
             res[shift] = (self._prices.low[self._offset + bar_idx] - min)/devia
             shift += 1
-            res[shift] = (self._prices.open[self._offset + bar_idx] - min)/devia
-            shift += 1
             res[shift] = (self._prices.close[self._offset + bar_idx] - min)/devia
+            shift += 1
+            '''
+            res[shift] = (self._prices.open[self._offset + bar_idx] - min)/devia
             shift += 1
             res[shift] = (self._prices.avgm[self._offset + bar_idx] - minAvg)/deviaAvg
             shift += 1
@@ -202,6 +203,7 @@ class State15:
             #shift += 1
             #res[shift] = self._prices.minute[self._offset + bar_idx]
             #shift += 1
+            '''
             if self.volumes:
                 res[shift] = self._prices.volume[self._offset + bar_idx]
                 shift += 1            
