@@ -20,8 +20,8 @@ from lib import dqn_model, common,environ, data, validation
 
 DEFAULT_STOCKS = "data/year_1.csv"
 DEFAULT_VAL_STOCKS = "data/year_2.csv"
-#DEFAULT_STOCKS = "/home/shohdi/projects/deep_learn_finance/forex_reinforcement2/test_book_env/data/year_1.csv"
-#DEFAULT_VAL_STOCKS = "/home/shohdi/projects/deep_learn_finance/forex_reinforcement2/test_book_env/data/year_2.csv"
+DEFAULT_STOCKS = "/home/shohdi/projects/deep_learn_finance/forex_reinforcement2/test_book_env/data/year_1.csv"
+DEFAULT_VAL_STOCKS = "/home/shohdi/projects/deep_learn_finance/forex_reinforcement2/test_book_env/data/year_2.csv"
 STATE_15 = True
 BARS_COUNT = 10
 CHECKPOINT_EVERY_STEP = 1000000
@@ -42,20 +42,35 @@ N_ATOMS = 51
 DELTA_Z = (Vmax - Vmin) / (N_ATOMS - 1)
 
 
+class Reshape(nn.Module):
+    def __init__(self, *args):
+        super(Reshape, self).__init__()
+        self.shape = args
+
+    def forward(self, x):
+        return x.view(self.shape)
+
 class RainbowDQN(nn.Module):
     def __init__(self, input_shape, n_actions):
         super(RainbowDQN, self).__init__()
-        '''
+        self.devide = None;
+        self.haveLinear = False
+        
+
+        self.myEncoder,self.haveLinear,self.newShape = self.getLinearLayer(input_shape)
+        if(self.newShape == None):
+            self.newShape = input_shape
+        
+        
         self.conv = nn.Sequential(
-            nn.Conv1d(input_shape[0], 128, 5),
+            nn.Conv2d(self.newShape[0], 32, kernel_size=8, stride=4),
             nn.ReLU(),
-            nn.Conv1d(128, 256, 5),
+            nn.Conv2d(32, 64, kernel_size=4, stride=2),
             nn.ReLU(),
-            nn.Conv1d(256, 256, 5),
+            nn.Conv2d(64, 64, kernel_size=3, stride=1),
             nn.ReLU()
         )
         '''
-
         self.conv = nn.Sequential(
             nn.Linear(input_shape[0], 1024),
             nn.ReLU(),
@@ -64,9 +79,10 @@ class RainbowDQN(nn.Module):
             nn.Linear(1024, 1024),
             nn.ReLU()
         )
+        '''
         
-
-        conv_out_size = self._get_conv_out(input_shape)
+        
+        conv_out_size = self._get_conv_out(self.newShape)
         self.fc_val = nn.Sequential(
             nn.Linear(conv_out_size, 512),
             nn.ReLU(),
@@ -81,14 +97,69 @@ class RainbowDQN(nn.Module):
 
         self.register_buffer("supports", torch.arange(Vmin, Vmax+DELTA_Z, DELTA_Z))
         self.softmax = nn.Softmax(dim=1)
+    
+    def getLinearLayer(self,shape):
+        linShape , haveLinear = self.getNeedLinear(shape)
+        if(haveLinear == False):
+            return None,haveLinear,None
+        else:
+            newShape = (1,linShape[2],linShape[2])
+            if linShape[0] == linShape[1] and linShape[2] >= 28:
+                return Reshape(newShape),haveLinear,newShape
+            else:
+                if(linShape[2] < 28):
+                    newShape = (1,28,28)
+                    linShape = (linShape[0],28*28,28)
+                    
+                
+                return nn.Sequential(
+                    nn.Linear(linShape[0],linShape[1]),
+                    Reshape(newShape)
+                ),haveLinear,newShape
+        
+    def getNeedLinear(self,shape):
+    
+        if(len(shape) == 3):
+            prod = np.prod((shape[1],shape[2]))
+        else:
+            prod = np.prod(shape)
+        
+        sqr = np.sqrt(prod)
+        int_sqr = int(sqr)
+        if int_sqr == sqr and len(shape) == 3 and shape[1] == shape[2] and shape[1] >= 28:
+            return None,False
+        else:
+            inSize = prod
+            oneDim = int_sqr
+            if(int_sqr != sqr):
+                oneDim = int_sqr +1
+            outSize = oneDim ** 2
+            
+            return (inSize,outSize,oneDim),True
 
     def _get_conv_out(self, shape):
-        o = self.conv(torch.zeros(1, *shape))
+        zeros = torch.zeros(1, *shape)
+        o = self.conv(zeros)
         return int(np.prod(o.size()))
 
     def forward(self, x):
+        if(self.devide == None):
+            if(np.amax(x.cpu().numpy().flatten()) > 2):
+                self.devide = True
+
+            else:
+                self.devide = False
+                
+        fx = None;
+        if(self.devide):
+            fx = x.float() / 256
+        else:
+            fx = x.float()
+
         batch_size = x.size()[0]
-        conv_out = self.conv(x).view(batch_size, -1)
+        if(self.haveLinear):
+            fx = self.myEncoder(fx)
+        conv_out = self.conv(fx).view(batch_size, -1)
         val_out = self.fc_val(conv_out).view(batch_size, 1, N_ATOMS)
         adv_out = self.fc_adv(conv_out).view(batch_size, -1, N_ATOMS)
         adv_mean = adv_out.mean(dim=1, keepdim=True)
@@ -106,6 +177,8 @@ class RainbowDQN(nn.Module):
 
     def apply_softmax(self, t):
         return self.softmax(t.view(-1, N_ATOMS)).view(t.size())
+
+
 
 
 def calc_loss(batch, net, tgt_net, gamma, device="cpu"):
@@ -152,6 +225,7 @@ def calculateModelParams(net):
 
 if __name__ == "__main__":
     params = common.HYPERPARAMS['shohdi']
+    #params = common.HYPERPARAMS['pong']
     params['epsilon_frames'] *= 2
     parser = argparse.ArgumentParser()
     parser.add_argument("--cuda", default=True, action="store_true", help="Enable cuda")
@@ -168,11 +242,18 @@ if __name__ == "__main__":
 
 
     stock_data = {"YANDEX": data.load_relative(args.data)}
+    
     env = environ.StocksEnv(stock_data, bars_count=BARS_COUNT, reset_on_close=True, state_1d=False, volumes=False)
     env_tst = environ.StocksEnv(stock_data, bars_count=BARS_COUNT, reset_on_close=True, state_1d=False, volumes=False)
 
     val_data = {"YANDEX": data.load_relative(args.valdata)}
     env_val = environ.StocksEnv(val_data, bars_count=BARS_COUNT, reset_on_close=True, state_1d=False, volumes=False)
+    '''
+    
+    env = ptan.common.wrappers.wrap_dqn(gym.make(params['env_name']))
+    env_tst = env
+    env_val = env
+    '''
 
     net = RainbowDQN(env.observation_space.shape, env.action_space.n).to(device)
     calculateModelParams(net)
