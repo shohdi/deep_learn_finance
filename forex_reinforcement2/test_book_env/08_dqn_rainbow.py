@@ -20,8 +20,8 @@ from lib import dqn_model, common,environ, data, validation
 
 DEFAULT_STOCKS = "data/year_1.csv"
 DEFAULT_VAL_STOCKS = "data/year_2.csv"
-DEFAULT_STOCKS = "/home/shohdi/projects/deep_learn_finance/forex_reinforcement2/test_book_env/data/year_1.csv"
-DEFAULT_VAL_STOCKS = "/home/shohdi/projects/deep_learn_finance/forex_reinforcement2/test_book_env/data/year_2.csv"
+#DEFAULT_STOCKS = "/home/shohdi/projects/deep_learn_finance/forex_reinforcement2/test_book_env/data/year_1.csv"
+#DEFAULT_VAL_STOCKS = "/home/shohdi/projects/deep_learn_finance/forex_reinforcement2/test_book_env/data/year_2.csv"
 STATE_15 = True
 BARS_COUNT = 10
 CHECKPOINT_EVERY_STEP = 1000000
@@ -68,15 +68,15 @@ class RainbowDQN(nn.Module):
 
         conv_out_size = self._get_conv_out(input_shape)
         self.fc_val = nn.Sequential(
-            dqn_model.NoisyLinear(conv_out_size, 512),
+            nn.Linear(conv_out_size, 512),
             nn.ReLU(),
-            dqn_model.NoisyLinear(512, N_ATOMS)
+            nn.Linear(512, N_ATOMS)
         )
 
         self.fc_adv = nn.Sequential(
-            dqn_model.NoisyLinear(conv_out_size, 512),
+            nn.Linear(conv_out_size, 512),
             nn.ReLU(),
-            dqn_model.NoisyLinear(512, n_actions * N_ATOMS)
+            nn.Linear(512, n_actions * N_ATOMS)
         )
 
         self.register_buffer("supports", torch.arange(Vmin, Vmax+DELTA_Z, DELTA_Z))
@@ -88,8 +88,7 @@ class RainbowDQN(nn.Module):
 
     def forward(self, x):
         batch_size = x.size()[0]
-        fx = x.float() / 256
-        conv_out = self.conv(fx).view(batch_size, -1)
+        conv_out = self.conv(x).view(batch_size, -1)
         val_out = self.fc_val(conv_out).view(batch_size, 1, N_ATOMS)
         adv_out = self.fc_adv(conv_out).view(batch_size, -1, N_ATOMS)
         adv_mean = adv_out.mean(dim=1, keepdim=True)
@@ -109,14 +108,14 @@ class RainbowDQN(nn.Module):
         return self.softmax(t.view(-1, N_ATOMS)).view(t.size())
 
 
-def calc_loss(batch, batch_weights, net, tgt_net, gamma, device="cpu"):
+def calc_loss(batch, net, tgt_net, gamma, device="cpu"):
     states, actions, rewards, dones, next_states = common.unpack_batch(batch)
     batch_size = len(batch)
 
     states_v = torch.tensor(states).to(device)
     actions_v = torch.tensor(actions).to(device)
     next_states_v = torch.tensor(next_states).to(device)
-    batch_weights_v = torch.tensor(batch_weights).to(device)
+    
 
     # next state distribution
     # dueling arch -- actions from main net, distr from tgt_net
@@ -143,8 +142,7 @@ def calc_loss(batch, batch_weights, net, tgt_net, gamma, device="cpu"):
     proj_distr_v = torch.tensor(proj_distr).to(device)
 
     loss_v = -state_log_sm_v * proj_distr_v
-    loss_v = batch_weights_v * loss_v.sum(dim=1)
-    return loss_v.mean(), loss_v + 1e-5
+    return loss_v.sum(dim=1).mean()
 
 def calculateModelParams(net):
     model_parameters = filter(lambda p: p.requires_grad, net.parameters())
@@ -186,7 +184,7 @@ if __name__ == "__main__":
     agent = ptan.agent.DQNAgent(lambda x: net.qvals(x), selector, device=device)
 
     exp_source = ptan.experience.ExperienceSourceFirstLast(env, agent, gamma=params['gamma'], steps_count=REWARD_STEPS)
-    buffer = ptan.experience.PrioritizedReplayBuffer(exp_source, params['replay_size'], PRIO_REPLAY_ALPHA)
+    buffer = ptan.experience.ExperienceReplayBuffer(exp_source, params['replay_size'])
     optimizer = optim.Adam(net.parameters(), lr=params['learning_rate'])
 
     frame_idx = 0
@@ -197,7 +195,7 @@ if __name__ == "__main__":
             frame_idx += 1
             buffer.populate(1)
             selector.epsilon = max(EPSILON_STOP, EPSILON_START - frame_idx / EPSILON_STEPS)
-            beta = min(1.0, BETA_START + frame_idx * (1.0 - BETA_START) / BETA_FRAMES)
+            
 
             new_rewards = exp_source.pop_rewards_steps()
             if new_rewards:
@@ -208,12 +206,12 @@ if __name__ == "__main__":
                 continue
 
             optimizer.zero_grad()
-            batch, batch_indices, batch_weights = buffer.sample(params['batch_size'], beta)
-            loss_v, sample_prios_v = calc_loss(batch, batch_weights, net, tgt_net.target_model,
+            batch = buffer.sample(params['batch_size'])
+            loss_v = calc_loss(batch, net, tgt_net.target_model,
                                                params['gamma'] ** REWARD_STEPS, device=device)
             loss_v.backward()
             optimizer.step()
-            buffer.update_priorities(batch_indices, sample_prios_v.data.cpu().numpy())
+            
 
             if frame_idx % params['target_net_sync'] == 0:
                 tgt_net.sync()
