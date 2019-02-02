@@ -48,7 +48,7 @@ class Reshape(nn.Module):
         self.shape = args[0]
 
     def forward(self, x):
-        return x.view((1,*self.shape))
+        return x.view((x.shape[0],*self.shape))
 
 class RainbowDQN(nn.Module):
     def __init__(self, input_shape, n_actions):
@@ -63,11 +63,11 @@ class RainbowDQN(nn.Module):
         
         
         self.conv = nn.Sequential(
-            nn.Conv2d(self.newShape[0], 32, kernel_size=8, stride=4),
+            nn.Conv2d(self.newShape[0], 32, kernel_size=3, stride=1),
             nn.ReLU(),
-            nn.Conv2d(32, 64, kernel_size=4, stride=2),
+            nn.Conv2d(32, 64, kernel_size=3, stride=1),
             nn.ReLU(),
-            nn.Conv2d(64, 64, kernel_size=3, stride=1),
+            nn.Conv2d(64, 128, kernel_size=3, stride=1),
             nn.ReLU()
         )
         '''
