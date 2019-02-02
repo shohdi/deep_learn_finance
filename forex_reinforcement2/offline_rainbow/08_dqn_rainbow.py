@@ -20,8 +20,8 @@ from lib import dqn_model, common,environ, data, validation
 
 DEFAULT_STOCKS = "data/train_data/data_5yr_to_9_2017.csv"
 DEFAULT_VAL_STOCKS = "data/test_data/v2018.csv"
-#DEFAULT_STOCKS = "/home/shohdi/projects/deep_learn_finance/forex_reinforcement2/offline_rainbow/data/train_data/year_1.csv"
-#DEFAULT_VAL_STOCKS = "/home/shohdi/projects/deep_learn_finance/forex_reinforcement2/offline_rainbow/data/test_data/v2018.csv"
+DEFAULT_STOCKS = "/home/shohdi/projects/deep_learn_finance/forex_reinforcement2/offline_rainbow/data/train_data/year_1.csv"
+DEFAULT_VAL_STOCKS = "/home/shohdi/projects/deep_learn_finance/forex_reinforcement2/offline_rainbow/data/test_data/v2018.csv"
 STATE_15 = True
 BARS_COUNT = 16
 CHECKPOINT_EVERY_STEP = 1000000
@@ -113,12 +113,18 @@ class RainbowDQN(nn.Module):
                 if(linShape[2] < 7):
                     newShape = (1,7,7)
                     linShape = (linShape[0],newShape[0] * 7*7,7)
-                                   
-                
-                return nn.Sequential(
-                    nn.Linear(linShape[0],linShape[1]),
-                    Reshape(newShape)
-                ),haveLinear,newShape
+                model = nn.Sequential(
+                            nn.Linear(linShape[0],linShape[1]),
+                            Reshape(newShape)
+                        )                  
+                if(len(shape) > 1):
+                    model = nn.Sequential(
+                                Reshape((linShape[0],)),
+                                nn.Linear(linShape[0],linShape[1]),
+                                Reshape(newShape)
+                            )
+
+                return model,haveLinear,newShape
         
     def getNeedLinear(self,shape):
     
@@ -253,12 +259,13 @@ if __name__ == "__main__":
 
     val_data = {"EURUSD": data.load_relative(args.valdata,not STATE_15)}
     env_val = environ.StocksEnv("validation",writer,val_data, bars_count=BARS_COUNT, reset_on_close=True, state_15=STATE_15,state_1d=False, volumes=False)
- 	'''
-    
+ 	
+    '''
     env = ptan.common.wrappers.wrap_dqn(gym.make(params['env_name']))
     env_tst = env
     env_val = env
     '''
+
 
     net = RainbowDQN(env.observation_space.shape, env.action_space.n).to(device)
     calculateModelParams(net)
