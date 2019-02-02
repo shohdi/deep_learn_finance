@@ -26,6 +26,8 @@ STATE_15 = True
 BARS_COUNT = 10
 CHECKPOINT_EVERY_STEP = 1000000
 VALIDATION_EVERY_STEP = 100000
+GROUP_REWARDS = 100
+#GROUP_REWARDS = 1
 
 # n-step
 REWARD_STEPS = 2
@@ -265,6 +267,7 @@ if __name__ == "__main__":
     EPSILON_STEPS = params["epsilon_frames"]
     EPSILON_STOP =  params["epsilon_final"]
     selector = environ.ShohdiEpsilonGreedyActionSelector(EPSILON_START)
+    #selector = ptan.actions.EpsilonGreedyActionSelector(EPSILON_START)
     agent = ptan.agent.DQNAgent(lambda x: net.qvals(x), selector, device=device)
 
     exp_source = ptan.experience.ExperienceSourceFirstLast(env, agent, gamma=params['gamma'], steps_count=REWARD_STEPS)
@@ -274,7 +277,7 @@ if __name__ == "__main__":
     frame_idx = 0
     beta = BETA_START
 
-    with common.RewardTracker(writer, params['stop_reward'],group_rewards=100) as reward_tracker:
+    with common.RewardTracker(writer, params['stop_reward'],group_rewards=GROUP_REWARDS) as reward_tracker:
         while True:
             frame_idx += 1
             buffer.populate(1)
