@@ -106,13 +106,13 @@ class RainbowDQN(nn.Module):
             return None,haveLinear,None
         else:
             newShape = (1,linShape[2],linShape[2])
-            if linShape[0] == linShape[1] and linShape[2] >= 28:
+            if linShape[0] == linShape[1] and linShape[2] >= 7:
                 return Reshape(newShape),haveLinear,newShape
             else:
-                if(linShape[2] < 28):
-                    newShape = (1,28,28)
-                    linShape = (linShape[0],newShape[0] * 28*28,28)
-                    
+                if(linShape[2] < 7):
+                    newShape = (1,7,7)
+                    linShape = (linShape[0],newShape[0] * 7*7,7)
+                                   
                 
                 return nn.Sequential(
                     nn.Linear(linShape[0],linShape[1]),
