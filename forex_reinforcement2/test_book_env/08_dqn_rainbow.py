@@ -20,8 +20,8 @@ from lib import dqn_model, common,environ, data, validation
 
 DEFAULT_STOCKS = "data/year_1.csv"
 DEFAULT_VAL_STOCKS = "data/year_2.csv"
-DEFAULT_STOCKS = "/home/shohdi/projects/deep_learn_finance/forex_reinforcement2/test_book_env/data/year_1.csv"
-DEFAULT_VAL_STOCKS = "/home/shohdi/projects/deep_learn_finance/forex_reinforcement2/test_book_env/data/year_2.csv"
+#DEFAULT_STOCKS = "/home/shohdi/projects/deep_learn_finance/forex_reinforcement2/test_book_env/data/year_1.csv"
+#DEFAULT_VAL_STOCKS = "/home/shohdi/projects/deep_learn_finance/forex_reinforcement2/test_book_env/data/year_2.csv"
 STATE_15 = True
 BARS_COUNT = 10
 CHECKPOINT_EVERY_STEP = 1000000
