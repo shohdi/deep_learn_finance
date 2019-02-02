@@ -45,10 +45,10 @@ DELTA_Z = (Vmax - Vmin) / (N_ATOMS - 1)
 class Reshape(nn.Module):
     def __init__(self, *args):
         super(Reshape, self).__init__()
-        self.shape = args
+        self.shape = args[0]
 
     def forward(self, x):
-        return x.view(self.shape)
+        return x.view((1,*self.shape))
 
 class RainbowDQN(nn.Module):
     def __init__(self, input_shape, n_actions):
@@ -82,7 +82,7 @@ class RainbowDQN(nn.Module):
         '''
         
         
-        conv_out_size = self._get_conv_out(self.newShape)
+        conv_out_size = self._get_conv_out(input_shape)
         self.fc_val = nn.Sequential(
             nn.Linear(conv_out_size, 512),
             nn.ReLU(),
@@ -109,7 +109,7 @@ class RainbowDQN(nn.Module):
             else:
                 if(linShape[2] < 28):
                     newShape = (1,28,28)
-                    linShape = (linShape[0],28*28,28)
+                    linShape = (linShape[0],newShape[0] * 28*28,28)
                     
                 
                 return nn.Sequential(
@@ -138,7 +138,10 @@ class RainbowDQN(nn.Module):
             return (inSize,outSize,oneDim),True
 
     def _get_conv_out(self, shape):
+
         zeros = torch.zeros(1, *shape)
+        if(self.myEncoder != None):
+            zeros = self.myEncoder(zeros)
         o = self.conv(zeros)
         return int(np.prod(o.size()))
 
