@@ -49,6 +49,7 @@ class State15:
         self.rewards = collections.deque(maxlen=100)
         self.game_steps = 0
         self.game_steps_queue = collections.deque(maxlen=100)
+        self.max_mean_reward = -100
     
     def getMaxMin(self):
         max = 0.0;
@@ -157,7 +158,11 @@ class State15:
 
 
     def getMeanReward(self):
-        return self.getMeanFromDeque(self.rewards)
+        mean_reward = self.getMeanFromDeque(self.rewards)
+        if(len(self.rewards) > 90 and mean_reward > self.max_mean_reward):
+            print(self.env_name," found better mean reward ",self.max_mean_reward," => ",mean_reward)
+            self.max_mean_reward = mean_reward 
+        return mean_reward
 
 
 

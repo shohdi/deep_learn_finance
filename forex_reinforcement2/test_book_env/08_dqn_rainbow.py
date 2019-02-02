@@ -20,8 +20,8 @@ from lib import dqn_model, common,environ, data, validation
 
 DEFAULT_STOCKS = "data/year_1.csv"
 DEFAULT_VAL_STOCKS = "data/year_2.csv"
-#DEFAULT_STOCKS = "/home/shohdi/projects/deep_learn_finance/forex_reinforcement2/test_book_env/data/year_1.csv"
-#DEFAULT_VAL_STOCKS = "/home/shohdi/projects/deep_learn_finance/forex_reinforcement2/test_book_env/data/year_2.csv"
+DEFAULT_STOCKS = "/home/shohdi/projects/deep_learn_finance/forex_reinforcement2/test_book_env/data/year_1.csv"
+DEFAULT_VAL_STOCKS = "/home/shohdi/projects/deep_learn_finance/forex_reinforcement2/test_book_env/data/year_2.csv"
 STATE_15 = True
 BARS_COUNT = 10
 CHECKPOINT_EVERY_STEP = 1000000
@@ -114,11 +114,18 @@ class RainbowDQN(nn.Module):
                     newShape = (1,7,7)
                     linShape = (linShape[0],newShape[0] * 7*7,7)
                                    
-                
-                return nn.Sequential(
-                    nn.Linear(linShape[0],linShape[1]),
-                    Reshape(newShape)
-                ),haveLinear,newShape
+                model = nn.Sequential(
+                            nn.Linear(linShape[0],linShape[1]),
+                            Reshape(newShape)
+                        )                  
+                if(len(shape) > 1):
+                    model = nn.Sequential(
+                                Reshape((linShape[0],)),
+                                nn.Linear(linShape[0],linShape[1]),
+                                Reshape(newShape)
+                            )
+
+                return model,haveLinear,newShape
         
     def getNeedLinear(self,shape):
     

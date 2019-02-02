@@ -20,12 +20,12 @@ from lib import dqn_model, common,environ, data, validation
 
 DEFAULT_STOCKS = "data/train_data/data_5yr_to_9_2017.csv"
 DEFAULT_VAL_STOCKS = "data/test_data/v2018.csv"
-DEFAULT_STOCKS = "/home/shohdi/projects/deep_learn_finance/forex_reinforcement2/offline_rainbow/data/train_data/year_1.csv"
-DEFAULT_VAL_STOCKS = "/home/shohdi/projects/deep_learn_finance/forex_reinforcement2/offline_rainbow/data/test_data/v2018.csv"
+#DEFAULT_STOCKS = "/home/shohdi/projects/deep_learn_finance/forex_reinforcement2/offline_rainbow/data/train_data/year_1.csv"
+#DEFAULT_VAL_STOCKS = "/home/shohdi/projects/deep_learn_finance/forex_reinforcement2/offline_rainbow/data/test_data/v2018.csv"
 STATE_15 = True
 BARS_COUNT = 16
 CHECKPOINT_EVERY_STEP = 1000000
-VALIDATION_EVERY_STEP = 100000
+VALIDATION_EVERY_STEP = 30000
 GROUP_REWARDS = 100
 #GROUP_REWARDS = 1
 
@@ -283,6 +283,7 @@ if __name__ == "__main__":
 
     frame_idx = 0
     beta = BETA_START
+    max_mean_reward = -100
 
     with common.RewardTracker(writer, params['stop_reward'],group_rewards=GROUP_REWARDS) as reward_tracker:
         while True:
@@ -312,15 +313,18 @@ if __name__ == "__main__":
             
             
             
-            if frame_idx % CHECKPOINT_EVERY_STEP == 0:
-                idx = frame_idx // CHECKPOINT_EVERY_STEP
-                torch.save(net.state_dict(), os.path.join(saves_path, "checkpoint-%3d.data" % idx))
+            
 
             if frame_idx % VALIDATION_EVERY_STEP == 0:
-                res = validation.validation_run(env_tst, net, device=device,epsilon=0.0)
-                for key, val in res.items():
-                    writer.add_scalar(key + "_test", val, frame_idx)
-                res = validation.validation_run(env_val, net, device=device,epsilon=0.0)
-                for key, val in res.items():
-                    writer.add_scalar(key + "_val", val, frame_idx)
+                res,_ = validation.validation_run(env_tst, net, device=device,epsilon=0.0)
+                #for key, val in res.items():
+                #    writer.add_scalar(key + "_test", val, frame_idx)
+                res,_ = validation.validation_run(env_val, net, device=device,epsilon=0.0)
+                #for key, val in res.items():
+                #    writer.add_scalar(key + "_val", val, frame_idx)
+                if(_ > max_mean_reward):
+                    max_mean_reward = _
+                    idx = frame_idx
+                    torch.save(net.state_dict(), os.path.join(saves_path, "reward-%3f.data" % max_mean_reward))
+                
             
