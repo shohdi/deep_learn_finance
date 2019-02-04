@@ -36,7 +36,13 @@ def validation_run(env, net, episodes=100, device="cpu", epsilon=0.00, comission
                 rand_val = int( np.random.rand(1)[0] *  env.action_space.n)
                 action_idx = rand_val
                 action = environ.Actions(action_idx)
-                
+            if episode_steps > 60 and not env._state.have_position:
+                print(env._state.env_name," episode number " , episode, " episode steps " , episode_steps)
+                rand = False
+                rand_val = 1#int( np.random.rand(1)[0] *  env.action_space.n)
+                action_idx = rand_val
+                action = environ.Actions(action_idx)
+
 
 
             close_price = env._state._cur_close()
@@ -65,13 +71,11 @@ def validation_run(env, net, episodes=100, device="cpu", epsilon=0.00, comission
                     stats['order_steps'].append(position_steps)
                 rand = False
                 break
-            if episode_steps > 240 and (episode_steps % 50) == 0:
-                print(env._state.env_name," episode number " , episode, " episode steps " , episode_steps)
-                rand = True
+
 
 
 
         stats['episode_reward'].append(total_reward)
         stats['episode_steps'].append(episode_steps)
 
-    return { key: np.mean(vals) for key, vals in stats.items() },env._state.max_mean_reward
+    return { key: np.mean(vals) for key, vals in stats.items() },env._state.getMeanReward()

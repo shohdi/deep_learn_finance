@@ -16,9 +16,11 @@ DEFAULT_COMMISSION_PERC = 0.0
 MAX_GAME_STEPS = 60
 STOP_AT_MAX_STEPS = False
 
-STOP_LOSS_T_R = 0.043*10
 
-RETURN_1_D = True
+
+
+
+RETURN_1_D = False
 
 class Actions(enum.Enum):
     Skip = 0
@@ -50,7 +52,12 @@ class State15:
         self.game_steps = 0
         self.game_steps_queue = collections.deque(maxlen=100)
         self.max_mean_reward = -100
+        self.minLossValue = self.getMinLossValue(1.145)
     
+    def getMinLossValue(self,close):
+        #assert isinstance(close,float)
+        return ((2/( 0.01 * close * 100000))/close) * 100.0
+
     def getMaxMin(self):
         max = 0.0;
         min = 9999999.0;
@@ -105,6 +112,8 @@ class State15:
         self.open_price = 0.0
         self._prices = prices
         self._offset = offset
+        self.minLossValue = self.getMinLossValue(self._cur_close())
+        
 
     @property
     def shape(self):
@@ -254,6 +263,7 @@ class State15:
         :return: reward, done
         """
         assert isinstance(action, Actions)
+        self.minLossValue = self.getMinLossValue(self._cur_close())
         reward = 0.0
         done = False
         close = self._cur_close()
@@ -262,7 +272,7 @@ class State15:
             self.open_price = self._cur_ashtry();
             reward -= self.commission_perc
             self.game_steps = 0
-        elif action == Actions.Close and self.have_position:
+        elif (action == Actions.Close or self.getTrainReward() <= (-1 * self.minLossValue) or self.getTrainReward() >= (2 * self.minLossValue) ) and self.have_position:
             reward -= self.commission_perc
             done |= self.reset_on_close
             if self.reward_on_close:
@@ -277,36 +287,7 @@ class State15:
             self.game_steps = 0
             self.have_position = False
             self.open_price = 0.0
-        elif self.getTrainReward() <= (-1 * STOP_LOSS_T_R) and self.have_position:
-            reward -= self.commission_perc
-            done |= self.reset_on_close
-            if self.reward_on_close:
-                reward += self.getTrainReward();
-            else:
-                reward -= 0.05; #spread
-            self.game_done+=1
-            self.rewards.append(self.getReward())
-            self.writer.add_scalar("shohdi-"+self.env_name+"-reward",self.getMeanReward(),self.game_done)
-            self.game_steps_queue.append(self.game_steps);
-            self.writer.add_scalar("shohdi-"+self.env_name+"-steps",self.getMeanFromDeque(self.game_steps_queue),self.game_done)
-            self.game_steps = 0
-            self.have_position = False
-            self.open_price = 0.0
-        elif STOP_AT_MAX_STEPS and self.game_steps >= MAX_GAME_STEPS and self.have_position and self.getTrainReward() < 0:
-            reward -= self.commission_perc
-            done |= self.reset_on_close
-            if self.reward_on_close:
-                reward += self.getTrainReward();
-            else:
-                reward -= 0.05; #spread
-            self.game_done+=1
-            self.rewards.append(self.getReward())
-            self.writer.add_scalar("shohdi-"+self.env_name+"-reward",self.getMeanReward(),self.game_done)
-            self.game_steps_queue.append(self.game_steps);
-            self.writer.add_scalar("shohdi-"+self.env_name+"-steps",self.getMeanFromDeque(self.game_steps_queue),self.game_done)
-            self.game_steps = 0
-            self.have_position = False
-            self.open_price = 0.0
+
         if(self.have_position):
             self.game_steps +=1
         self._offset += 1

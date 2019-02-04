@@ -25,7 +25,7 @@ DEFAULT_VAL_STOCKS = "data/test_data/v2018.csv"
 STATE_15 = True
 BARS_COUNT = 16
 CHECKPOINT_EVERY_STEP = 1000000
-VALIDATION_EVERY_STEP = 30000
+VALIDATION_EVERY_STEP = 50000
 GROUP_REWARDS = 100
 #GROUP_REWARDS = 1
 
@@ -56,6 +56,7 @@ class RainbowDQN(nn.Module):
     def __init__(self, input_shape, n_actions):
         super(RainbowDQN, self).__init__()
         self.devide = None;
+        
         self.haveLinear = False
         
 
@@ -73,16 +74,19 @@ class RainbowDQN(nn.Module):
             nn.ReLU()
             
         )
-        '''
+        
         self.conv = nn.Sequential(
             nn.Linear(input_shape[0], 1024),
             nn.ReLU(),
-            nn.Linear(1024, 1024),
+            nn.Linear(1024, 2048),
             nn.ReLU(),
-            nn.Linear(1024, 1024),
+            nn.Linear(2048, 1024),
             nn.ReLU()
         )
-        '''
+        self.haveLinear = False
+        self.myEncoder = None
+        self.newShape = input_shape
+        
         
         
         conv_out_size = self._get_conv_out(input_shape)
@@ -322,9 +326,10 @@ if __name__ == "__main__":
                 res,_ = validation.validation_run(env_val, net, device=device,epsilon=0.0)
                 #for key, val in res.items():
                 #    writer.add_scalar(key + "_val", val, frame_idx)
-                if(_ > max_mean_reward):
-                    max_mean_reward = _
+                if(_ > 0):
+                    if(_ > max_mean_reward):
+                        max_mean_reward = _
                     idx = frame_idx
-                    torch.save(net.state_dict(), os.path.join(saves_path, "reward-%3f.data" % max_mean_reward))
+                    torch.save(net.state_dict(), os.path.join(saves_path, "reward_%d_%3f.data" % (idx ,_)))
                 
             
