@@ -20,8 +20,7 @@ from lib import dqn_model, common,environ, data, validation
 
 DEFAULT_STOCKS = "data/train_data/data_5yr_to_9_2017.csv"
 DEFAULT_VAL_STOCKS = "data/test_data/v2018.csv"
-DEFAULT_STOCKS = "/home/shohdi/projects/deep_learn_finance/forex_reinforcement2/offline_rainbow/data/train_data/year_1.csv"
-DEFAULT_VAL_STOCKS = "/home/shohdi/projects/deep_learn_finance/forex_reinforcement2/offline_rainbow/data/test_data/v2018.csv"
+
 STATE_15 = True
 BARS_COUNT = 16
 CHECKPOINT_EVERY_STEP = 1000000
@@ -252,7 +251,9 @@ if __name__ == "__main__":
     device = torch.device("cuda" if args.cuda else "cpu")
 
     saves_path = os.path.join("saves", args.run)
-    os.makedirs(saves_path, exist_ok=True)
+
+
+
 
     writer = SummaryWriter(comment="-" + args.run + "-rainbow")
 
@@ -269,20 +270,46 @@ if __name__ == "__main__":
     env_tst = env
     env_val = env
     '''
-
-
-    net = RainbowDQN(env.observation_space.shape, env.action_space.n).to(device)
-    calculateModelParams(net)
-    tgt_net = ptan.agent.TargetNet(net)
     EPSILON_START = params["epsilon_start"]
     EPSILON_STEPS = params["epsilon_frames"]
     EPSILON_STOP =  params["epsilon_final"]
+
+
+    os.makedirs(saves_path, exist_ok=True)
+    last_model_path = os.path.join(saves_path, "last_model.data")
+    
+    last_model_exists = os.path.isfile(last_model_path)
+    net = RainbowDQN(env.observation_space.shape, env.action_space.n).to(device)
+    if(last_model_exists):
+        print("found model : loading ....")
+        net.load_state_dict(torch.load(last_model_path))
+        net.eval()
+        print("end loading model")
+        
+
     selector = environ.ShohdiEpsilonGreedyActionSelector(EPSILON_START)
     #selector = ptan.actions.EpsilonGreedyActionSelector(EPSILON_START)
+
+    calculateModelParams(net)
+    tgt_net = ptan.agent.TargetNet(net)
+    tgt_net.sync()
+    
     agent = ptan.agent.DQNAgent(lambda x: net.qvals(x), selector, device=device)
 
     exp_source = ptan.experience.ExperienceSourceFirstLast(env, agent, gamma=params['gamma'], steps_count=REWARD_STEPS)
     buffer = ptan.experience.ExperienceReplayBuffer(exp_source, params['replay_size'])
+
+    '''
+    exp_path = os.path.join(saves_path,"exp.pickle")
+    if os.path.isfile(exp_path):
+        myFin = open(exp_path,'rb')
+        
+        buffer = pickle.load(myFin);
+        myFin.close();
+    '''    
+
+
+
     optimizer = optim.Adam(net.parameters(), lr=params['learning_rate'])
 
     frame_idx = 0
@@ -331,5 +358,10 @@ if __name__ == "__main__":
                         max_mean_reward = _
                     idx = frame_idx
                     torch.save(net.state_dict(), os.path.join(saves_path, "reward_%d_%3f.data" % (idx ,_)))
+                    '''
+                    myFout = open(exp_path,'wb');
+                    pickle.dump(buffer);
+                    myFout.close();
+                    '''
                 
             
