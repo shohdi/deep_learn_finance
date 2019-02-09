@@ -19,6 +19,7 @@ from lib import dqn_model, common,environ, data, validation
 
 
 DEFAULT_STOCKS = "data/train_data/data_5yr_to_9_2017.csv"
+DEFAULT_STOCKS = "data/train_data/year_1.csv"
 DEFAULT_VAL_STOCKS = "data/test_data/v2018.csv"
 
 STATE_15 = True

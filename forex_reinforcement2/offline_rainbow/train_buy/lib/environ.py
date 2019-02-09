@@ -20,7 +20,7 @@ STOP_AT_MAX_STEPS = False
 
 
 
-RETURN_1_D = False
+
 
 class Actions(enum.Enum):
     Skip = 0
@@ -30,7 +30,7 @@ class Actions(enum.Enum):
 
 
 class State15:
-    def __init__(self,env_name,writer, bars_count, commission_perc, reset_on_close, reward_on_close=True, volumes=False):
+    def __init__(self,env_name,writer, bars_count, commission_perc, reset_on_close, reward_on_close=True,state_1d=False, volumes=False):
         assert isinstance(env_name,str)
         assert not (env_name == None or env_name == '')
         assert isinstance(writer,SummaryWriter)
@@ -40,12 +40,21 @@ class State15:
         
         assert isinstance(reset_on_close, bool)
         assert isinstance(reward_on_close, bool)
+        print("state print : ");
         self.bars_count = bars_count
+        print("bars count ",self.bars_count)
         self.commission_perc = commission_perc
+        print("commission_perc  " , self.commission_perc)
         self.reset_on_close = reset_on_close
+        print("reset on close ",self.reset_on_close)
         self.reward_on_close = reward_on_close
+        print("reward on close ",self.reward_on_close)
         self.volumes = volumes
+        print("volumes ",self.volumes)
         self.env_name = env_name
+        print("env name ",self.env_name)
+        self.return_1_d = state_1d
+        print("return one d ",self.return_1_d)
         self.writer = writer
         self.game_done = 0
         self.rewards = collections.deque(maxlen=100)
@@ -117,7 +126,7 @@ class State15:
 
     @property
     def shape(self):
-        if(RETURN_1_D):
+        if(self.return_1_d):
             return self.shape1d()
         # [h, l, c] * bars + position_flag + rel_profit (since open)
         if self.volumes:
@@ -178,7 +187,7 @@ class State15:
     
     
     def encode(self):
-        if(RETURN_1_D):
+        if(self.return_1_d):
             return self.encode1d()
         min,max,minAvg,maxAvg = self.getMaxMin()
         deviaAvg = maxAvg - minAvg
@@ -342,21 +351,33 @@ class StocksEnv(gym.Env):
         assert not (env_name == None or env_name == '')
         assert isinstance(writer,SummaryWriter)
         assert isinstance(prices, dict)
+        print("env print ")
         self.reward_on_close = reward_on_close
+        print("reward on close ",self.reward_on_close)
+        print("bars_count ",bars_count)
+        print("env name ",env_name)
+        print("commission ",commission)
+        print("reset on close ",reset_on_close)
+        print("state 15 ",state_15)
+        print("state 1 d ",state_1d)
+        print("random ofs on reset ",random_ofs_on_reset)
+        print("reward on close ",reward_on_close)
+        print("volumes ",volumes)
         self._prices = prices
-        if state_1d:
-            self._state = State1D(bars_count, commission, reset_on_close, reward_on_close=reward_on_close,
-                                  volumes=volumes)
-        elif state_15:
-            self._state = State15(env_name,writer,bars_count, commission, reset_on_close, reward_on_close=reward_on_close,
-                                  volumes=volumes)
-        else:
-            self._state = State(env_name,writer,bars_count, commission, reset_on_close, reward_on_close=reward_on_close,
-                                volumes=volumes)
+        
+        
+        self._state = State15(env_name,writer,bars_count, commission, reset_on_close, reward_on_close=reward_on_close
+            ,state_1d=state_1d,volumes=volumes)
+        
         self.action_space = gym.spaces.Discrete(n=len(Actions)-1)
+
         self.action_space.sample = (lambda : self.mySample())
-        print("action space sample ",self.action_space.sample())
+        
+        
         self.observation_space = gym.spaces.Box(low=-np.inf, high=np.inf, shape=self._state.shape, dtype=np.float32)
+        print("action space shape ",self.action_space.shape)
+        print("states shape ",self.observation_space.shape)
+        print("action space sample ",self.action_space.sample())
         self.random_ofs_on_reset = random_ofs_on_reset
         self.seed()
         self._step = 0
