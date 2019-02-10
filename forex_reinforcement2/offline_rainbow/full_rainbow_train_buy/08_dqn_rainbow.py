@@ -42,7 +42,7 @@ Vmax = 10
 Vmin = -10
 N_ATOMS = 51
 DELTA_Z = (Vmax - Vmin) / (N_ATOMS - 1)
-STATE_1D = False
+STATE_1D = True
 
 
 class Reshape(nn.Module):
@@ -78,7 +78,7 @@ class RainbowDQN(nn.Module):
         )
 
         self.conv = None
-        if self.state_1d:
+        if not self.state_1d:
             self.conv = nn.Sequential(
                 nn.Linear(input_shape[0], 1024),
                 nn.ReLU(),
@@ -89,7 +89,7 @@ class RainbowDQN(nn.Module):
             )
         else:
             self.conv = nn.Sequential(
-                nn.Conv1d(shape[0], 128, 5),
+                nn.Conv1d(input_shape[0], 128, 5),
                 nn.ReLU(),
                 nn.Conv1d(128, 128, 5),
                 nn.ReLU(),
@@ -333,7 +333,7 @@ if __name__ == "__main__":
             beta = min(1.0, BETA_START + frame_idx * (1.0 - BETA_START) / BETA_FRAMES)
 
 
-            new_rewards = exp_source.pop_total_steps()
+            new_rewards = exp_source.pop_rewards_steps()
             if new_rewards:
                 if reward_tracker.reward(new_rewards[0], frame_idx):
                     break
