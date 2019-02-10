@@ -42,6 +42,7 @@ Vmax = 10
 Vmin = -10
 N_ATOMS = 51
 DELTA_Z = (Vmax - Vmin) / (N_ATOMS - 1)
+STATE_1D = False
 
 
 class Reshape(nn.Module):
@@ -53,8 +54,9 @@ class Reshape(nn.Module):
         return x.view((x.shape[0],*self.shape))
 
 class RainbowDQN(nn.Module):
-    def __init__(self, input_shape, n_actions):
+    def __init__(self, input_shape, n_actions,state_1d=STATE_1D):
         super(RainbowDQN, self).__init__()
+        self.state_1d = state_1d
         self.devide = None;
         
         self.haveLinear = False
@@ -63,48 +65,58 @@ class RainbowDQN(nn.Module):
         self.myEncoder,self.haveLinear,self.newShape = self.getLinearLayer(input_shape)
         if(self.newShape == None):
             self.newShape = input_shape
-        
-        
+
+
         self.conv = nn.Sequential(
-            nn.Conv2d(self.newShape[0], 32, kernel_size=3, stride=1),
+            nn.Conv2d(input_shape[0], 32, kernel_size=8, stride=4),
             nn.ReLU(),
-            nn.Conv2d(32, 64, kernel_size=3, stride=1),
+            nn.Conv2d(32, 64, kernel_size=4, stride=2),
             nn.ReLU(),
-            nn.Conv2d(64, 128, kernel_size=3, stride=1),
+            nn.Conv2d(64, 64, kernel_size=3, stride=1),
             nn.ReLU()
-            
+
         )
-        
-        self.conv = nn.Sequential(
-            nn.Linear(input_shape[0], 1024),
-            nn.ReLU(),
-            nn.Linear(1024, 2048),
-            nn.ReLU(),
-            nn.Linear(2048, 1024),
-            nn.ReLU()
-        )
+
+        self.conv = None
+        if self.state_1d:
+            self.conv = nn.Sequential(
+                nn.Linear(input_shape[0], 1024),
+                nn.ReLU(),
+                nn.Linear(1024, 2048),
+                nn.ReLU(),
+                nn.Linear(2048, 1024),
+                nn.ReLU()
+            )
+        else:
+            self.conv = nn.Sequential(
+                nn.Conv1d(shape[0], 128, 5),
+                nn.ReLU(),
+                nn.Conv1d(128, 128, 5),
+                nn.ReLU(),
+            )
+
         self.haveLinear = False
         self.myEncoder = None
         self.newShape = input_shape
-        
-        
-        
+
+
+
         conv_out_size = self._get_conv_out(input_shape)
         self.fc_val = nn.Sequential(
-            nn.Linear(conv_out_size, 512),
+            dqn_model.NoisyLinear(conv_out_size, 512),
             nn.ReLU(),
-            nn.Linear(512, N_ATOMS)
+            dqn_model.NoisyLinear(512, N_ATOMS)
         )
 
         self.fc_adv = nn.Sequential(
-            nn.Linear(conv_out_size, 512),
+            dqn_model.NoisyLinear(conv_out_size, 512),
             nn.ReLU(),
-            nn.Linear(512, n_actions * N_ATOMS)
+            dqn_model.NoisyLinear(512, n_actions * N_ATOMS)
         )
 
         self.register_buffer("supports", torch.arange(Vmin, Vmax+DELTA_Z, DELTA_Z))
         self.softmax = nn.Softmax(dim=1)
-    
+
     def getLinearLayer(self,shape):
         linShape , haveLinear = self.getNeedLinear(shape)
         if(haveLinear == False):
@@ -195,16 +207,14 @@ class RainbowDQN(nn.Module):
         return self.softmax(t.view(-1, N_ATOMS)).view(t.size())
 
 
-
-
-def calc_loss(batch, net, tgt_net, gamma, device="cpu"):
+def calc_loss(batch, batch_weights, net, tgt_net, gamma, device="cpu"):
     states, actions, rewards, dones, next_states = common.unpack_batch(batch)
     batch_size = len(batch)
 
     states_v = torch.tensor(states).to(device)
     actions_v = torch.tensor(actions).to(device)
     next_states_v = torch.tensor(next_states).to(device)
-    
+    batch_weights_v = torch.tensor(batch_weights).to(device)
 
     # next state distribution
     # dueling arch -- actions from main net, distr from tgt_net
@@ -231,7 +241,8 @@ def calc_loss(batch, net, tgt_net, gamma, device="cpu"):
     proj_distr_v = torch.tensor(proj_distr).to(device)
 
     loss_v = -state_log_sm_v * proj_distr_v
-    return loss_v.sum(dim=1).mean()
+    loss_v = batch_weights_v * loss_v.sum(dim=1)
+    return loss_v.mean(), loss_v + 1e-5
 
 def calculateModelParams(net):
     model_parameters = filter(lambda p: p.requires_grad, net.parameters())
@@ -260,20 +271,20 @@ if __name__ == "__main__":
 
 
     stock_data = {"EURUSD": data.load_relative(args.data,not STATE_15)}
-    env = environ.StocksEnv("train",writer,stock_data, bars_count=BARS_COUNT, reset_on_close=True,state_15=STATE_15, state_1d=False, volumes=False)
-    env_tst = environ.StocksEnv("test",writer,stock_data, bars_count=BARS_COUNT, reset_on_close=True,state_15=STATE_15, state_1d=False, volumes=False)
+    env = environ.StocksEnv("train",writer,stock_data, bars_count=BARS_COUNT, reset_on_close=True,state_15=STATE_15, state_1d=STATE_1D, volumes=False)
+    env_tst = environ.StocksEnv("test",writer,stock_data, bars_count=BARS_COUNT, reset_on_close=True,state_15=STATE_15, state_1d=STATE_1D, volumes=False)
 
     val_data = {"EURUSD": data.load_relative(args.valdata,not STATE_15)}
-    env_val = environ.StocksEnv("validation",writer,val_data, bars_count=BARS_COUNT, reset_on_close=True, state_15=STATE_15,state_1d=False, volumes=False)
+    env_val = environ.StocksEnv("validation",writer,val_data, bars_count=BARS_COUNT, reset_on_close=True, state_15=STATE_15,state_1d=STATE_1D, volumes=False)
  	
     '''
     env = ptan.common.wrappers.wrap_dqn(gym.make(params['env_name']))
     env_tst = env
     env_val = env
-    '''
     EPSILON_START = params["epsilon_start"]
     EPSILON_STEPS = params["epsilon_frames"]
     EPSILON_STOP =  params["epsilon_final"]
+    '''
 
 
     os.makedirs(saves_path, exist_ok=True)
@@ -287,18 +298,16 @@ if __name__ == "__main__":
         net.eval()
         print("end loading model")
         
-
-    selector = environ.ShohdiEpsilonGreedyActionSelector(EPSILON_START)
-    #selector = ptan.actions.EpsilonGreedyActionSelector(EPSILON_START)
-
+    
+    selector = ptan.actions.ArgmaxActionSelector()
     calculateModelParams(net)
     tgt_net = ptan.agent.TargetNet(net)
     tgt_net.sync()
-    
+
     agent = ptan.agent.DQNAgent(lambda x: net.qvals(x), selector, device=device)
 
     exp_source = ptan.experience.ExperienceSourceFirstLast(env, agent, gamma=params['gamma'], steps_count=REWARD_STEPS)
-    buffer = ptan.experience.ExperienceReplayBuffer(exp_source, params['replay_size'])
+    buffer = ptan.experience.PrioritizedReplayBuffer(exp_source, params['replay_size'], PRIO_REPLAY_ALPHA)
 
     '''
     exp_path = os.path.join(saves_path,"exp.pickle")
@@ -321,29 +330,29 @@ if __name__ == "__main__":
         while True:
             frame_idx += 1
             buffer.populate(1)
-            selector.epsilon = max(EPSILON_STOP, EPSILON_START - frame_idx / EPSILON_STEPS)
-            
+            beta = min(1.0, BETA_START + frame_idx * (1.0 - BETA_START) / BETA_FRAMES)
 
-            new_rewards = exp_source.pop_rewards_steps()
+
+            new_rewards = exp_source.pop_total_steps()
             if new_rewards:
-                if reward_tracker.reward(new_rewards[0], frame_idx, selector.epsilon):
+                if reward_tracker.reward(new_rewards[0], frame_idx):
                     break
 
             if len(buffer) < params['replay_initial']:
                 continue
 
             optimizer.zero_grad()
-            batch = buffer.sample(params['batch_size'])
-            loss_v = calc_loss(batch, net, tgt_net.target_model,
+            batch, batch_indices, batch_weights = buffer.sample(params['batch_size'], beta)
+            loss_v, sample_prios_v = calc_loss(batch, batch_weights, net, tgt_net.target_model,
                                                params['gamma'] ** REWARD_STEPS, device=device)
             loss_v.backward()
             optimizer.step()
-            
+            buffer.update_priorities(batch_indices, sample_prios_v.data.cpu().numpy())
 
             if frame_idx % params['target_net_sync'] == 0:
                 tgt_net.sync()
-            
-            
+
+
             
             
 
