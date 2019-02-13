@@ -23,9 +23,9 @@ DEFAULT_STOCKS = "data/train_data/data_5yr_to_9_2017.csv"
 DEFAULT_VAL_STOCKS = "data/test_data/v2018.csv"
 
 STATE_15 = True
-BARS_COUNT = 16
+BARS_COUNT = 50
 CHECKPOINT_EVERY_STEP = 1000000
-VALIDATION_EVERY_STEP = 50000
+VALIDATION_EVERY_STEP = 100000
 GROUP_REWARDS = 100
 #GROUP_REWARDS = 1
 
@@ -271,11 +271,11 @@ if __name__ == "__main__":
 
 
     stock_data = {"EURUSD": data.load_relative(args.data,not STATE_15)}
-    env = environ.StocksEnv("train",writer,stock_data, bars_count=BARS_COUNT, reset_on_close=True,state_15=STATE_15, state_1d=STATE_1D, volumes=False)
-    env_tst = environ.StocksEnv("test",writer,stock_data, bars_count=BARS_COUNT, reset_on_close=True,state_15=STATE_15, state_1d=STATE_1D, volumes=False)
+    env = environ.StocksEnv("train",writer,stock_data, bars_count=BARS_COUNT, reset_on_close=True,state_15=STATE_15, state_1d=STATE_1D, volumes=False,start_epsilon=1)
+    env_tst = environ.StocksEnv("test",writer,stock_data, bars_count=BARS_COUNT, reset_on_close=True,state_15=STATE_15, state_1d=STATE_1D, volumes=False,start_epsilon=0.1)
 
     val_data = {"EURUSD": data.load_relative(args.valdata,not STATE_15)}
-    env_val = environ.StocksEnv("validation",writer,val_data, bars_count=BARS_COUNT, reset_on_close=True, state_15=STATE_15,state_1d=STATE_1D, volumes=False)
+    env_val = environ.StocksEnv("validation",writer,val_data, bars_count=BARS_COUNT, reset_on_close=True, state_15=STATE_15,state_1d=STATE_1D, volumes=False,start_epsilon=0.1)
  	
     '''
     env = ptan.common.wrappers.wrap_dqn(gym.make(params['env_name']))
