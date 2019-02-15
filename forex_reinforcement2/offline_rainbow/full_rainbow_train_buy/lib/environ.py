@@ -119,6 +119,7 @@ class State15:
         assert isinstance(prices, data.Prices)
         assert offset >= self.bars_count-1
         self.have_position = False
+        self.last_dir = 0.0
         self.open_price = 0.0
         self._prices = prices
         self._offset = offset
@@ -162,7 +163,7 @@ class State15:
         else:
             dst = 8
         if self.have_position:
-            res[dst] = 1.0
+            res[dst] = (float(0.5) if self.last_dir == -1 else float(self.have_position))
             res[dst+1] = self.getTrainReward()
         return res
 
@@ -229,7 +230,7 @@ class State15:
             if self.volumes:
                 res[shift] = self._prices.volume[self._offset + bar_idx]
                 shift += 1            
-        res[shift] = float(self.have_position)
+        res[shift] = float(0.5) if self.last_dir == -1 else float(self.have_position) 
         shift += 1
         res[shift] = self.getTrainReward();
         
@@ -239,12 +240,12 @@ class State15:
     def getTrainReward(self):
         if not self.have_position:
             return 0.0
-        return ((self._cur_exit_pos() - self.open_price)/self.open_price)*100
+        return (((self._cur_exit_pos() - self.open_price)/self.open_price)*100) * self.last_dir
     def getReward(self):
         if not self.have_position:
             return 0.0
         else:
-            return ((self._cur_exit_pos() - self.open_price) * (0.01 * 100000))/10.0;
+            return (((self._cur_exit_pos() - self.open_price) * (0.01 * 100000))/10.0) * self.last_dir;
         
     def _cur_close(self):
         """
@@ -274,7 +275,7 @@ class State15:
         """
         
 
-        if action == Actions.Close:
+        if (action == Actions.Close or action == Actions.Buy) and self.have_position:
             action = Actions.Skip
 
         assert isinstance(action, Actions)
@@ -285,11 +286,33 @@ class State15:
         close = self._cur_close()
 
             
-        if action == Actions.Buy and not self.have_position:
+        if (action == Actions.Buy or action == Actions.Close) and not self.have_position:
             self.have_position = True
+            if action == Actions.Buy:
+                self.last_dir = 1
+            else:
+                self.last_dir = -1
             self.open_price = self._cur_ashtry();
             reward -= self.commission_perc
             self.game_steps = 0
+        elif not self.have_position and self.rand_steps >= 3000:
+            print('3000 error we must punish it');
+            reward -= self.commission_perc
+            done |= self.reset_on_close
+            
+            reward += -1.0
+            
+            self.game_done+=1
+            self.rewards.append(self.getReward())
+            self.writer.add_scalar("shohdi-"+self.env_name+"-reward",self.getMeanReward(),self.game_done)
+            self.game_steps_queue.append(self.game_steps);
+            self.writer.add_scalar("shohdi-"+self.env_name+"-steps",self.getMeanFromDeque(self.game_steps_queue),self.game_done)
+            self.game_steps = 0
+            self.have_position = False
+            self.last_dir = 0.0
+            self.open_price = 0.0
+            self.rand_steps=0.0
+
             
 
         while self.have_position:
@@ -298,7 +321,7 @@ class State15:
             done = False
             close = self._cur_close()
 
-            if (action == Actions.Close or self.getTrainReward() <= (-1 * self.minLossValue) or self.getTrainReward() >= (2 * self.minLossValue) ) and self.have_position:
+            if (self.getTrainReward() <= (-1 * self.minLossValue) or self.getTrainReward() >= (2 * self.minLossValue) ) and self.have_position:
                 reward -= self.commission_perc
                 done |= self.reset_on_close
                 if self.reward_on_close:
@@ -312,6 +335,7 @@ class State15:
                 self.writer.add_scalar("shohdi-"+self.env_name+"-steps",self.getMeanFromDeque(self.game_steps_queue),self.game_done)
                 self.game_steps = 0
                 self.have_position = False
+                self.last_dir = 0.0
                 self.open_price = 0.0
                 self.rand_steps=0.0
 
@@ -323,9 +347,10 @@ class State15:
             done |= self._offset >= self._prices.close.shape[0]-1
             if(done):
                 self.have_position = False
+                self.last_dir = 0.0
 
             if self.have_position and not self.reward_on_close:
-                reward += ((close - prev_close) / prev_close) * 100;
+                reward += (((close - prev_close) / prev_close) * 100) * self.last_dir;
 
         if not enterWhile :
             if(self.have_position):
@@ -338,7 +363,7 @@ class State15:
                 self.have_position = False
 
             if self.have_position and not self.reward_on_close:
-                reward += ((close - prev_close) / prev_close) * 100;
+                reward += (((close - prev_close) / prev_close) * 100) * self.last_dir;
 
 
         self.rand_steps += 1
@@ -380,7 +405,7 @@ class StocksEnv(gym.Env):
         self._state = State15(env_name,writer,bars_count, commission, reset_on_close, reward_on_close=reward_on_close
             ,state_1d=state_1d,volumes=volumes)
         
-        self.action_space = gym.spaces.Discrete(n=len(Actions)-1)
+        self.action_space = gym.spaces.Discrete(n=len(Actions))
 
         self.action_space.sample = (lambda : self.mySample())
         
