@@ -352,7 +352,7 @@ class StocksEnv(gym.Env):
 
     def __init__(self,env_name,writer, prices, bars_count=DEFAULT_BARS_COUNT,
                  commission=DEFAULT_COMMISSION_PERC, reset_on_close=True,state_15 = True, state_1d=False,
-                 random_ofs_on_reset=True, reward_on_close=True, volumes=False, start_epsilon = 0.0):
+                 random_ofs_on_reset=True, reward_on_close=True, volumes=False):
         assert isinstance(env_name,str)
         assert not (env_name == None or env_name == '')
         assert isinstance(writer,SummaryWriter)
@@ -370,15 +370,10 @@ class StocksEnv(gym.Env):
         print("random ofs on reset ",random_ofs_on_reset)
         print("reward on close ",reward_on_close)
         print("volumes ",volumes)
-        print("epsilon ", start_epsilon)
-        self.start_epsilon = start_epsilon
-        self.epsilon = start_epsilon
-        self.end_eps = 0.001
-        print("end epsilon ",self.end_eps)
-        self.eps_steps = 2000000
-        print("epsilon steps ",self.eps_steps)
-        self.delta_eps = ((self.start_epsilon - self.end_eps) / self.eps_steps)
-        print("delta epsilon ",self.delta_eps)
+        
+        
+        
+        
         self._prices = prices
         
         
@@ -417,26 +412,8 @@ class StocksEnv(gym.Env):
         self._state.reset(prices, offset)
         return self._state.encode()
 
-    def update_epsilon(self,action_idx):
-        if(self.epsilon == 0.0):
-            return action_idx
-
-
-        rand_eps = np.random.rand(1)[0];
-        if((self.epsilon - self.delta_eps) > self.end_eps):
-            self.epsilon = self.epsilon - self.delta_eps
-        else:
-            self.epsilon = self.end_eps    
-        rand_val = int( np.random.rand(1)[0] *  self.action_space.n * 5)
-        if(rand_eps < self.epsilon):
-            action_idx = rand_val if rand_val < 3 else 0
-
-        if(self._step > 0 and self._step % 10000 == 0):
-            print("current epsilon : ",self.epsilon, " rand action : " , rand_eps< self.epsilon , " action index : ",action_idx )    
-        return action_idx
-
     def step(self, action_idx):
-        action_idx = self.update_epsilon(action_idx)
+        
         action = Actions(action_idx)
         reward, done = self._state.step(action)
         obs = self._state.encode()
