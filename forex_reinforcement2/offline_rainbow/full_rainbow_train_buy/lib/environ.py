@@ -241,27 +241,26 @@ class State15:
         if not self.have_position:
             return 0.0
         return (((self._cur_exit_pos() - self.open_price)/self.open_price)*100) * self.last_dir
-    def getReward(self):
-        if not self.have_position:
-            return 0.0
-        else:
-            return (((self._cur_exit_pos() - self.open_price) * (0.01 * 100000))/10.0) * self.last_dir;
+
         
     def _cur_close(self):
         """
         Calculate real close price for the current bar
         """
-        if not self.have_position:
-            return self._cur_ashtry();
-        else:
-            return self._cur_exit_pos();
+        return self._offset_close()
 
-    def _cur_ashtry(self):
-        
-        return self._prices.ask[self._offset];
+
     def _cur_exit_pos(self):
-       
-        return self._prices.bid[self._offset];
+        if( not self.have_position):
+            return self._offset_close();
+        ask = self._prices.ask[self._offset];
+        bid = self._prices.bid[self._offset];
+        slip = ask - bid;
+        if self.last_dir > 0:
+            return self._offset_close - slip;
+        else:
+            return self._offset_close + slip;
+        
         
     def _offset_close(self):
         return self._prices.close[self._offset];
@@ -292,7 +291,7 @@ class State15:
                 self.last_dir = 1
             else:
                 self.last_dir = -1
-            self.open_price = self._cur_ashtry();
+            self.open_price = self._offset_close()
             reward -= self.commission_perc
             self.game_steps = 0
         elif not self.have_position and self.rand_steps >= 3000:
@@ -303,7 +302,7 @@ class State15:
             reward += -1.0
             
             self.game_done+=1
-            self.rewards.append(self.getReward())
+            self.rewards.append(reward)
             self.writer.add_scalar("shohdi-"+self.env_name+"-reward",self.getMeanReward(),self.game_done)
             self.game_steps_queue.append(self.game_steps);
             self.writer.add_scalar("shohdi-"+self.env_name+"-steps",self.getMeanFromDeque(self.game_steps_queue),self.game_done)
@@ -320,16 +319,16 @@ class State15:
             reward = 0.0
             done = False
             close = self._cur_close()
-
-            if (self.getTrainReward() <= (-1 * self.minLossValue) or self.getTrainReward() >= (2 * self.minLossValue) ) and self.have_position:
+            currentReward = self.getTrainReward()
+            if (currentReward <= (-1 * self.minLossValue) or currentReward >= (2 * self.minLossValue) ) and self.have_position:
                 reward -= self.commission_perc
                 done |= self.reset_on_close
                 if self.reward_on_close:
-                    reward += self.getTrainReward()
+                    reward += currentReward
                 else:
                     reward -= 0.05; #spread
                 self.game_done+=1
-                self.rewards.append(self.getReward())
+                self.rewards.append(reward)
                 self.writer.add_scalar("shohdi-"+self.env_name+"-reward",self.getMeanReward(),self.game_done)
                 self.game_steps_queue.append(self.game_steps);
                 self.writer.add_scalar("shohdi-"+self.env_name+"-steps",self.getMeanFromDeque(self.game_steps_queue),self.game_done)
