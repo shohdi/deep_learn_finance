@@ -274,15 +274,14 @@ class State15:
         """
         
 
-        if (action == Actions.Close or action == Actions.Buy) and self.have_position:
-            action = Actions.Skip
 
         assert isinstance(action, Actions)
         self.minLossValue = self.getMinLossValue(self._cur_close())
-        enterWhile = False
+        
         reward = 0.0
         done = False
         close = self._cur_close()
+        currentReward = self.getTrainReward()
 
             
         if (action == Actions.Buy or action == Actions.Close) and not self.have_position:
@@ -294,15 +293,28 @@ class State15:
             self.open_price = self._offset_close()
             reward -= self.commission_perc
             self.game_steps = 0
-        elif not self.have_position and self.rand_steps >= 3000:
-            print('3000 error we must punish it');
+        elif ((self.have_position and ((action == Actions.Buy and self.last_dir < 0) or (action == Actions.Close and self.last_dir > 0))) 
+        or ((currentReward <= (-1 * self.minLossValue) or currentReward >= (1 * self.minLossValue) ) and self.have_position) 
+        or (not self.have_position and self.rand_steps >= 3000) 
+        or (self._offset >= self._prices.close.shape[0]-2)):
+            
             reward -= self.commission_perc
             done |= self.reset_on_close
-            
-            reward += -1.0
+            if (not self.have_position and self.rand_steps >= 3000):
+                print('3000 error we must punish it');
+                reward += -1.0
+            else:
+                if self.reward_on_close:
+                    reward += currentReward
+                else:
+                    reward -= 0.05; #spread
             
             self.game_done+=1
-            self.rewards.append(reward)
+            if self.have_position :
+                self.rewards.append(reward)
+            else:
+                self.rewards.append(currentReward)
+
             self.writer.add_scalar("shohdi-"+self.env_name+"-reward",self.getMeanReward(),self.game_done)
             self.game_steps_queue.append(self.game_steps);
             self.writer.add_scalar("shohdi-"+self.env_name+"-steps",self.getMeanFromDeque(self.game_steps_queue),self.game_done)
@@ -311,60 +323,16 @@ class State15:
             self.last_dir = 0.0
             self.open_price = 0.0
             self.rand_steps=0.0
+        
+        if(self.have_position):
+            self.game_steps +=1
+        self._offset += 1
+        prev_close = close
+        close = self._cur_close()
 
-            
-
-        while self.have_position:
-            enterWhile = True
-            reward = 0.0
-            done = False
-            close = self._cur_close()
-            currentReward = self.getTrainReward()
-            if (currentReward <= (-1 * self.minLossValue) or currentReward >= (2 * self.minLossValue) ) and self.have_position:
-                reward -= self.commission_perc
-                done |= self.reset_on_close
-                if self.reward_on_close:
-                    reward += currentReward
-                else:
-                    reward -= 0.05; #spread
-                self.game_done+=1
-                self.rewards.append(reward)
-                self.writer.add_scalar("shohdi-"+self.env_name+"-reward",self.getMeanReward(),self.game_done)
-                self.game_steps_queue.append(self.game_steps);
-                self.writer.add_scalar("shohdi-"+self.env_name+"-steps",self.getMeanFromDeque(self.game_steps_queue),self.game_done)
-                self.game_steps = 0
-                self.have_position = False
-                self.last_dir = 0.0
-                self.open_price = 0.0
-                self.rand_steps=0.0
-
-            if(self.have_position):
-                self.game_steps +=1
-            self._offset += 1
-            prev_close = close
-            close = self._cur_close()
-            done |= self._offset >= self._prices.close.shape[0]-1
-            if(done):
-                self.have_position = False
-                self.last_dir = 0.0
-
-            if self.have_position and not self.reward_on_close:
-                reward += (((close - prev_close) / prev_close) * 100) * self.last_dir;
-
-        if not enterWhile :
-            if(self.have_position):
-                self.game_steps +=1
-            self._offset += 1
-            prev_close = close
-            close = self._cur_close()
-            done |= self._offset >= self._prices.close.shape[0]-1
-            if(done):
-                self.have_position = False
-
-            if self.have_position and not self.reward_on_close:
-                reward += (((close - prev_close) / prev_close) * 100) * self.last_dir;
-
-
+        if self.have_position and not self.reward_on_close:
+        	reward += (((close - prev_close) / prev_close) * 100) * self.last_dir;
+        
         self.rand_steps += 1
         return reward, done
 

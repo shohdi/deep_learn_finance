@@ -23,7 +23,7 @@ DEFAULT_STOCKS = "data/train_data/data_5yr_to_9_2017.csv"
 DEFAULT_VAL_STOCKS = "data/test_data/v2018.csv"
 
 STATE_15 = True
-BARS_COUNT = 16
+BARS_COUNT = 50
 CHECKPOINT_EVERY_STEP = 1000000
 VALIDATION_EVERY_STEP = 20000
 GROUP_REWARDS = 100
@@ -285,6 +285,9 @@ if __name__ == "__main__":
     EPSILON_STEPS = params["epsilon_frames"]
     EPSILON_STOP =  params["epsilon_final"]
     '''
+    EPSILON_START = params["epsilon_start"]
+    EPSILON_STEPS = params["epsilon_frames"]
+    EPSILON_STOP =  params["epsilon_final"]
 
 
     os.makedirs(saves_path, exist_ok=True)
@@ -299,7 +302,8 @@ if __name__ == "__main__":
         print("end loading model")
         
     
-    selector = ptan.actions.ArgmaxActionSelector()
+    #selector = ptan.actions.ArgmaxActionSelector()
+    selector = environ.ShohdiEpsilonGreedyActionSelector(EPSILON_START,ptan.actions.ArgmaxActionSelector())
     calculateModelParams(net)
     tgt_net = ptan.agent.TargetNet(net)
     tgt_net.sync()
@@ -329,13 +333,15 @@ if __name__ == "__main__":
     with common.RewardTracker(writer, params['stop_reward'],group_rewards=GROUP_REWARDS) as reward_tracker:
         while True:
             frame_idx += 1
+            step_idx = frame_idx
             buffer.populate(1)
+            selector.epsilon = max(EPSILON_STOP, EPSILON_START - step_idx / EPSILON_STEPS)
             beta = min(1.0, BETA_START + frame_idx * (1.0 - BETA_START) / BETA_FRAMES)
 
 
             new_rewards = exp_source.pop_rewards_steps()
             if new_rewards:
-                if reward_tracker.reward(new_rewards[0], frame_idx):
+                if reward_tracker.reward(new_rewards[0], frame_idx,selector.epsilon):
                     break
 
             if len(buffer) < params['replay_initial']:
