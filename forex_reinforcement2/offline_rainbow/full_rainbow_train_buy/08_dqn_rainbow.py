@@ -103,15 +103,15 @@ class RainbowDQN(nn.Module):
 
         conv_out_size = self._get_conv_out(input_shape)
         self.fc_val = nn.Sequential(
-            dqn_model.NoisyLinear(conv_out_size, 512),
+            nn.Linear(conv_out_size, 512),
             nn.ReLU(),
-            dqn_model.NoisyLinear(512, N_ATOMS)
+            nn.Linear(512, N_ATOMS)
         )
 
         self.fc_adv = nn.Sequential(
-            dqn_model.NoisyLinear(conv_out_size, 512),
+            nn.Linear(conv_out_size, 512),
             nn.ReLU(),
-            dqn_model.NoisyLinear(512, n_actions * N_ATOMS)
+            nn.Linear(512, n_actions * N_ATOMS)
         )
 
         self.register_buffer("supports", torch.arange(Vmin, Vmax+DELTA_Z, DELTA_Z))
