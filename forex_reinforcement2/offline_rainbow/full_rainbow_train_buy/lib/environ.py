@@ -257,9 +257,9 @@ class State15:
         bid = self._prices.bid[self._offset];
         slip = ask - bid;
         if self.last_dir > 0:
-            return self._offset_close - slip;
+            return self._offset_close() - slip;
         else:
-            return self._offset_close + slip;
+            return self._offset_close() + slip;
         
         
     def _offset_close(self):
