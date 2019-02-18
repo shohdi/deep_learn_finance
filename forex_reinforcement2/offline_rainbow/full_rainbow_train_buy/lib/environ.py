@@ -405,10 +405,19 @@ class StocksEnv(gym.Env):
         return self._state.encode()
 
     def step(self, action_idx):
-        
+        #to return to normal env remove this if
+        if(action_idx > 1):
+            action_idx = 0
+
         action = Actions(action_idx)
+        
         reward, done = self._state.step(action)
         obs = self._state.encode()
+        #to return to normal env remove this while
+        if self._state.have_position:
+            while(not done):
+                reward, done = self._state.step(Actions(0))
+        
         info = {"instrument": self._instrument, "offset": self._state._offset}
         self._step +=1
         
