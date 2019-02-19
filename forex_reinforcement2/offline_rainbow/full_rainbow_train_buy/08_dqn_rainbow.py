@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+#this is a trainable model (can train to make progress).
 import os
 import gym
 from gym import wrappers
