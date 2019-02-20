@@ -151,16 +151,16 @@ class State15:
         min,max,minAvg,maxAvg = self.getMaxMin()
         deviaAvg = maxAvg - minAvg
         devia = max-min
-        res = np.zeros(shape=self.shape, dtype=np.float32)
+        res = np.zeros(shape=self.shape1d(), dtype=np.float32)
         ofs = (self.bars_count*COMPRESS_LEVEL)-1
-        res[0] = (self._prices.high[self._offset-ofs:self._offset+1] - min)/devia
-        res[1] = (self._prices.low[self._offset-ofs:self._offset+1] - min)/devia
-        res[2] = (self._prices.open[self._offset-ofs:self._offset+1] - min)/devia
-        res[3] = (self._prices.close[self._offset-ofs:self._offset+1] - min)/devia
-        res[4] = (self._prices.avgm[self._offset-ofs:self._offset+1] - minAvg)/deviaAvg
-        res[5] = (self._prices.avgh[self._offset-ofs:self._offset+1] - minAvg)/deviaAvg
-        res[6] = (self._prices.avgd[self._offset-ofs:self._offset+1] - minAvg)/deviaAvg
-        res[7] = (self._prices.close[self._offset-ofs:self._offset+1] - minAvg)/deviaAvg
+        res[0] = (self._prices.compresed.high[self._offset] - min)/devia
+        res[1] = (self._prices.compresed.low[self._offset] - min)/devia
+        res[2] = (self._prices.compresed.open[self._offset] - min)/devia
+        res[3] = (self._prices.compresed.close[self._offset] - min)/devia
+        res[4] = (self._prices.compresed.avgm[self._offset] - minAvg)/deviaAvg
+        res[5] = (self._prices.compresed.avgh[self._offset] - minAvg)/deviaAvg
+        res[6] = (self._prices.compresed.avgd[self._offset] - minAvg)/deviaAvg
+        res[7] = (self._prices.compresed.close[self._offset] - minAvg)/deviaAvg
         
         if self.volumes:
             res[8] = self._prices.volume[self._offset-ofs:self._offset+1]
