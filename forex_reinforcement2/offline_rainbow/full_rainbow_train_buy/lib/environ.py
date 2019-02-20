@@ -11,6 +11,7 @@ import ptan
 
 from . import data
 
+
 DEFAULT_BARS_COUNT = 10
 DEFAULT_COMMISSION_PERC = 0.0
 MAX_GAME_STEPS = 60
@@ -141,6 +142,10 @@ class State15:
             return (11, self.bars_count)
         else:
             return (10, self.bars_count)
+    
+
+            
+
 
     def encode1d(self):
         min,max,minAvg,maxAvg = self.getMaxMin()
@@ -191,6 +196,8 @@ class State15:
     def encode(self):
         if(self.return_1_d):
             return self.encode1d()
+
+        
         min,max,minAvg,maxAvg = self.getMaxMin()
         deviaAvg = maxAvg - minAvg
         devia = max-min
@@ -199,34 +206,17 @@ class State15:
         """
 
         res = np.ndarray(shape=self.shape, dtype=np.float32)
-        ofs = (self.bars_count*COMPRESS_LEVEL)-1
-        
-        high = self._prices.high[self._offset-ofs:self._offset+1];
-        low  = self._prices.low[self._offset-ofs:self._offset+1];
-        open = self._prices.open[self._offset-ofs:self._offset+1];
-        close = self._prices.close[self._offset-ofs:self._offset+1];
-        avgm = self._prices.avgm[self._offset-ofs:self._offset+1];
-        avgh = self._prices.avgh[self._offset-ofs:self._offset+1];
-        avgd = self._prices.avgd[self._offset-ofs:self._offset+1];
-
-        high = np.array(high,dtype=np.float32).reshape((-1,COMPRESS_LEVEL))
-        low = np.array(low,dtype=np.float32).reshape((-1,COMPRESS_LEVEL))
-        open = np.array(open,dtype=np.float32).reshape((-1,COMPRESS_LEVEL))
-        close  = np.array(close,dtype=np.float32).reshape((-1,COMPRESS_LEVEL))
-        avgm  = np.array(avgm,dtype=np.float32).reshape((-1,COMPRESS_LEVEL))
-        avgh  = np.array(avgh,dtype=np.float32).reshape((-1,COMPRESS_LEVEL))
-        avgd  = np.array(avgd,dtype=np.float32).reshape((-1,COMPRESS_LEVEL))
-
-        high = high.max(1)
-        low = low.min(1)
-        close = close[:,-1]
-        open = open[:,0]
-        avgm = avgm[:,-1]
-        avgh = avgh.mean(1)
-        avgd = avgd.mean(1)
-
+       
 
         shift = 0
+        high = self._prices.compresed[offset].high
+        low = self._prices.compresed[offset].low
+        close = self._prices.compresed[offset].close
+        open = self._prices.compresed[offset].open
+        avgm = self._prices.compresed[offset].avgm
+        avgh = self._prices.compresed[offset].avgh
+        avgd = self._prices.compresed[offset].avgd
+
         for bar_idx in range(0,len(high)):
             #'high','low','open','close','avgm','avgh','avgd','month','dayofmonth','dayofweek','hour','minute','ask','bid','volume'
             res[shift] = (high[bar_idx] - min)/devia
@@ -392,9 +382,12 @@ class StocksEnv(gym.Env):
         print("volumes ",volumes)
         
         
-        
-        
         self._prices = prices
+
+        lstKeys = list(prices.keys())
+        for i in range(0,len(lstKeys)):
+            compressHelper = handle_compresed(prices[lstKeys[i]],bars_count,COMPRESS_LEVEL)
+            prices[lstKeys[i]] = compressHelper.addAllPricesCompressed()
         
         
         self._state = State15(env_name,writer,bars_count, commission, reset_on_close, reward_on_close=reward_on_close
@@ -433,18 +426,18 @@ class StocksEnv(gym.Env):
         return self._state.encode()
 
     def step(self, action_idx):
-        #to return to normal env remove this if
-        if(action_idx > 1):
-            action_idx = 0
+        # shohdi comment to return to normal env remove this if
+        #if(action_idx > 1):
+        #    action_idx = 0
 
         action = Actions(action_idx)
         
         reward, done = self._state.step(action)
         obs = self._state.encode()
-        #to return to normal env remove this while
-        if self._state.have_position:
-            while(not done):
-                reward, done = self._state.step(Actions(0))
+        # shohdi comment to return to normal env remove this while
+        #if self._state.have_position:
+        #    while(not done):
+        #        reward, done = self._state.step(Actions(0))
         
         info = {"instrument": self._instrument, "offset": self._state._offset}
         self._step +=1
@@ -489,3 +482,88 @@ class ShohdiEpsilonGreedyActionSelector(ptan.actions.EpsilonGreedyActionSelector
         rand_actions = np.array(list(map(lambda v : v if v < first_act else 0  ,rand_actions)),dtype=np.int)
         actions[mask] = rand_actions
         return actions
+
+
+
+class handle_compresed:
+    def __init__(self,prices,bars_count,compress_level):
+        self._prices = prices
+        self.bars_count = bars_count
+        self.compress_level = compress_level
+        self.compresed =  [None for _ in range(len(self._prices.low))]
+
+    def addCompresed(self,offset):
+        ofs = (self.bars_count*self.compress_level)-1
+        
+        high = self._prices.high[offset-ofs:offset+1];
+        low  = self._prices.low[offset-ofs:offset+1];
+        open = self._prices.open[offset-ofs:offset+1];
+        close = self._prices.close[offset-ofs:offset+1];
+        avgm = self._prices.avgm[offset-ofs:offset+1];
+        avgh = self._prices.avgh[offset-ofs:offset+1];
+        avgd = self._prices.avgd[offset-ofs:offset+1];
+
+        high = np.array(high,dtype=np.float32).reshape((-1,self.compress_level))
+        low = np.array(low,dtype=np.float32).reshape((-1,self.compress_level))
+        open = np.array(open,dtype=np.float32).reshape((-1,self.compress_level))
+        close  = np.array(close,dtype=np.float32).reshape((-1,self.compress_level))
+        avgm  = np.array(avgm,dtype=np.float32).reshape((-1,self.compress_level))
+        avgh  = np.array(avgh,dtype=np.float32).reshape((-1,self.compress_level))
+        avgd  = np.array(avgd,dtype=np.float32).reshape((-1,self.compress_level))
+
+        high = high.max(1)
+        low = low.min(1)
+        close = close[:,-1]
+        open = open[:,0]
+        avgm = avgm[:,-1]
+        avgh = avgh.mean(1)
+        avgd = avgd.mean(1)
+
+        compressed = data.Prices(
+            high = high,
+            low = low,
+            close = close,
+            open = open,
+            avgm = avgm,
+            avgh = avgh,
+            avgd = avgd,
+            month=None,
+            dayofmonth=None,
+            dayofweek=None,
+            hour=None,
+            minute=None,
+            ask=None,
+            bid=None,
+            volume = None
+            ,compresed = None
+        )
+        self.compresed[offset] = compressed
+
+    
+    def addAllPricesCompressed(self):
+        if(self._prices.compresed == None):
+            
+            ofs = (self.bars_count*self.compress_level)-1
+            for i in range (ofs,len(self._prices.low)):
+                if (i > ofs and i % 10000 == 0):
+                    print('compress index ',i)
+                self.addCompresed(i)
+
+        return data.Prices(
+            high = self._prices.high,
+            low = self._prices.low,
+            close = self._prices.close,
+            open = self._prices.open,
+            avgm = self._prices.avgm,
+            avgh = self._prices.avgh,
+            avgd = self._prices.avgd,
+            month=self._prices.month,
+            dayofmonth=self._prices.dayofmonth,
+            dayofweek=self._prices.dayofweek,
+            hour=self._prices.hour,
+            minute=self._prices.minute,
+            ask=self._prices.ask,
+            bid=self._prices.bid,
+            volume = self._prices.volume
+            ,compresed = self.compresed
+        )

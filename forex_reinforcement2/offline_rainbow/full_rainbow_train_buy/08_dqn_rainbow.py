@@ -16,7 +16,7 @@ import torch.optim as optim
 
 from tensorboardX import SummaryWriter
 
-from lib import dqn_model, common,environ, data, validation
+from lib import dqn_model, common,environ,data, validation
 
 
 DEFAULT_STOCKS = "data/train_data/data_5yr_to_9_2017.csv"
