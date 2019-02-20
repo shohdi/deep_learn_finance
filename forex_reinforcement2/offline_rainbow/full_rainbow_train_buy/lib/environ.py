@@ -206,34 +206,29 @@ class State15:
         """
 
         res = np.ndarray(shape=self.shape, dtype=np.float32)
-       
+
 
         shift = 0
-        high = np.array(self._prices.compresed.high[self._offset],dtype=np.float)
-        low = np.array(self._prices.compresed.low[self._offset],dtype=np.float)
-        close = np.array(self._prices.compresed.close[self._offset],dtype=np.float)
-        open = np.array(self._prices.compresed.open[self._offset],dtype=np.float)
-        avgm = np.array(self._prices.compresed.avgm[self._offset],dtype=np.float)
-        avgh = np.array(self._prices.compresed.avgh[self._offset],dtype=np.float)
-        avgd = np.array(self._prices.compresed.avgd[self._offset],dtype=np.float)
 
-        for bar_idx in range(0,len(high)):
+        arrlen = len(self._prices.compresed.high[self._offset])
+
+        for bar_idx in range(0,arrlen):
             #'high','low','open','close','avgm','avgh','avgd','month','dayofmonth','dayofweek','hour','minute','ask','bid','volume'
-            res[shift] = (high[bar_idx] - min)/devia
+            res[shift] = (self._prices.compresed.high[self._offset][bar_idx] - min)/devia
             shift += 1
-            res[shift] = (low[bar_idx] - min)/devia
+            res[shift] = (self._prices.compresed.low[self._offset][bar_idx] - min)/devia
             shift += 1
-            res[shift] = (open[bar_idx] - min)/devia
+            res[shift] = (self._prices.compresed.open[self._offset][bar_idx] - min)/devia
             shift += 1
-            res[shift] = (close[bar_idx] - min)/devia
+            res[shift] = (self._prices.compresed.close[self._offset][bar_idx] - min)/devia
             shift += 1
-            res[shift] = (avgm[bar_idx] - minAvg)/deviaAvg
+            res[shift] = (self._prices.compresed.avgm[self._offset][bar_idx] - minAvg)/deviaAvg
             shift += 1
-            res[shift] = (avgh[bar_idx] - minAvg)/deviaAvg
+            res[shift] = (self._prices.compresed.avgh[self._offset][bar_idx] - minAvg)/deviaAvg
             shift += 1
-            res[shift] = (avgd[bar_idx] - minAvg)/deviaAvg
+            res[shift] = (self._prices.compresed.avgd[self._offset][bar_idx] - minAvg)/deviaAvg
             shift += 1
-            res[shift] = (close[bar_idx] - minAvg)/deviaAvg
+            res[shift] = (self._prices.compresed.close[self._offset][bar_idx] - minAvg)/deviaAvg
             shift += 1
             #res[shift] = self._prices.month[self._offset + bar_idx]
             #shift += 1
