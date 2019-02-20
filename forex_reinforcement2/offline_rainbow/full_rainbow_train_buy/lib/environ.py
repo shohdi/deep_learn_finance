@@ -209,13 +209,13 @@ class State15:
        
 
         shift = 0
-        high = self._prices.compresed[offset].high
-        low = self._prices.compresed[offset].low
-        close = self._prices.compresed[offset].close
-        open = self._prices.compresed[offset].open
-        avgm = self._prices.compresed[offset].avgm
-        avgh = self._prices.compresed[offset].avgh
-        avgd = self._prices.compresed[offset].avgd
+        high = np.array(self._prices.compresed.high[self._offset],dtype=np.float)
+        low = np.array(self._prices.compresed.low[self._offset],dtype=np.float)
+        close = np.array(self._prices.compresed.close[self._offset],dtype=np.float)
+        open = np.array(self._prices.compresed.open[self._offset],dtype=np.float)
+        avgm = np.array(self._prices.compresed.avgm[self._offset],dtype=np.float)
+        avgh = np.array(self._prices.compresed.avgh[self._offset],dtype=np.float)
+        avgd = np.array(self._prices.compresed.avgd[self._offset],dtype=np.float)
 
         for bar_idx in range(0,len(high)):
             #'high','low','open','close','avgm','avgh','avgd','month','dayofmonth','dayofweek','hour','minute','ask','bid','volume'
@@ -491,6 +491,7 @@ class handle_compresed:
         self.bars_count = bars_count
         self.compress_level = compress_level
         self.compresed =  [None for _ in range(len(self._prices.low))]
+        self.len = len(self._prices.high)
 
     def addCompresed(self,offset):
         ofs = (self.bars_count*self.compress_level)-1
@@ -542,8 +543,53 @@ class handle_compresed:
     
     def addAllPricesCompressed(self):
         if(self._prices.compresed == None):
-            
-            ofs = (self.bars_count*self.compress_level)-1
+            high = [None if offset < ((self.bars_count*self.compress_level)-1) else self._prices.high[offset-((self.bars_count*self.compress_level)-1):offset+1].reshape((-1,self.compress_level)).max(1) for offset in range (0,self.len)]
+            close = [None if offset < ((self.bars_count*self.compress_level)-1) else self._prices.close[offset-((self.bars_count*self.compress_level)-1):offset+1].reshape((-1,self.compress_level))[:,-1] for offset in range (0,self.len)]
+            open = [None if offset < ((self.bars_count*self.compress_level)-1) else self._prices.open[offset-((self.bars_count*self.compress_level)-1):offset+1].reshape((-1,self.compress_level))[:,0] for offset in range (0,self.len)]
+            low = [None if offset < ((self.bars_count*self.compress_level)-1) else self._prices.low[offset-((self.bars_count*self.compress_level)-1):offset+1].reshape((-1,self.compress_level)).min(1) for offset in range (0,self.len)]
+            avgm = [None if offset < ((self.bars_count*self.compress_level)-1) else self._prices.avgm[offset-((self.bars_count*self.compress_level)-1):offset+1].reshape((-1,self.compress_level))[:,-1] for offset in range (0,self.len)]
+            avgh = [None if offset < ((self.bars_count*self.compress_level)-1) else self._prices.avgh[offset-((self.bars_count*self.compress_level)-1):offset+1].reshape((-1,self.compress_level)).mean(1) for offset in range (0,self.len)]
+            avgd = [None if offset < ((self.bars_count*self.compress_level)-1) else self._prices.avgd[offset-((self.bars_count*self.compress_level)-1):offset+1].reshape((-1,self.compress_level)).mean(1) for offset in range (0,self.len)]
+            return data.Prices(
+                high = self._prices.high,
+                low = self._prices.low,
+                close = self._prices.close,
+                open = self._prices.open,
+                avgm = self._prices.avgm,
+                avgh = self._prices.avgh,
+                avgd = self._prices.avgd,
+                month=self._prices.month,
+                dayofmonth=self._prices.dayofmonth,
+                dayofweek=self._prices.dayofweek,
+                hour=self._prices.hour,
+                minute=self._prices.minute,
+                ask=self._prices.ask,
+                bid=self._prices.bid,
+                volume = self._prices.volume
+                ,compresed = data.Prices(
+                    high = high,
+                    low = low,
+                    close = close,
+                    open = open,
+                    avgm = avgm,
+                    avgh = avgh,
+                    avgd = avgd,
+                    month=None,
+                    dayofmonth=None,
+                    dayofweek=None,
+                    hour=None,
+                    minute=None,
+                    ask=None,
+                    bid=None,
+                    volume = None
+                    ,compresed = None
+
+                )
+            )
+        else:
+            return self._prices
+        ''' 
+            ofs = ((self.bars_count*self.compress_level)-1)
             for i in range (ofs,len(self._prices.low)):
                 if (i > ofs and i % 10000 == 0):
                     print('compress index ',i)
@@ -567,3 +613,4 @@ class handle_compresed:
             volume = self._prices.volume
             ,compresed = self.compresed
         )
+        '''
