@@ -15,7 +15,7 @@ DEFAULT_BARS_COUNT = 10
 DEFAULT_COMMISSION_PERC = 0.0
 MAX_GAME_STEPS = 60
 STOP_AT_MAX_STEPS = False
-
+COMPRESS_LEVEL = 60
 
 
 
@@ -74,7 +74,7 @@ class State15:
         maxAvg = 0.0;
         minAvg = 9999999.0;
 
-        for bar_idx in range(-self.bars_count+1, 1):
+        for bar_idx in range(-(self.bars_count * COMPRESS_LEVEL)+1 , 1):
             val = self._prices.high[self._offset + bar_idx]
             if(val > 0 and val < min):
                 min = val
@@ -117,7 +117,7 @@ class State15:
 
     def reset(self, prices, offset):
         assert isinstance(prices, data.Prices)
-        assert offset >= self.bars_count-1
+        assert offset >= (self.bars_count *COMPRESS_LEVEL)-1
         self.have_position = False
         self.last_dir = 0.0
         self.open_price = 0.0
@@ -147,7 +147,7 @@ class State15:
         deviaAvg = maxAvg - minAvg
         devia = max-min
         res = np.zeros(shape=self.shape, dtype=np.float32)
-        ofs = self.bars_count-1
+        ofs = (self.bars_count*COMPRESS_LEVEL)-1
         res[0] = (self._prices.high[self._offset-ofs:self._offset+1] - min)/devia
         res[1] = (self._prices.low[self._offset-ofs:self._offset+1] - min)/devia
         res[2] = (self._prices.open[self._offset-ofs:self._offset+1] - min)/devia
@@ -197,25 +197,53 @@ class State15:
         """
         Convert current state into numpy array.
         """
+
         res = np.ndarray(shape=self.shape, dtype=np.float32)
+        ofs = (self.bars_count*COMPRESS_LEVEL)-1
+        
+        high = self._prices.high[self._offset-ofs:self._offset+1];
+        low  = self._prices.low[self._offset-ofs:self._offset+1];
+        open = self._prices.open[self._offset-ofs:self._offset+1];
+        close = self._prices.close[self._offset-ofs:self._offset+1];
+        avgm = self._prices.avgm[self._offset-ofs:self._offset+1];
+        avgh = self._prices.avgh[self._offset-ofs:self._offset+1];
+        avgd = self._prices.avgd[self._offset-ofs:self._offset+1];
+
+        high = np.array(high,dtype=np.float32).reshape((-1,COMPRESS_LEVEL))
+        low = np.array(low,dtype=np.float32).reshape((-1,COMPRESS_LEVEL))
+        open = np.array(open,dtype=np.float32).reshape((-1,COMPRESS_LEVEL))
+        close  = np.array(close,dtype=np.float32).reshape((-1,COMPRESS_LEVEL))
+        avgm  = np.array(avgm,dtype=np.float32).reshape((-1,COMPRESS_LEVEL))
+        avgh  = np.array(avgh,dtype=np.float32).reshape((-1,COMPRESS_LEVEL))
+        avgd  = np.array(avgd,dtype=np.float32).reshape((-1,COMPRESS_LEVEL))
+
+        high = high.max(1)
+        low = low.min(1)
+        close = close[:,-1]
+        open = open[:,0]
+        avgm = avgm[:,-1]
+        avgh = avgh.mean(1)
+        avgd = avgd.mean(1)
+
+
         shift = 0
-        for bar_idx in range(-self.bars_count+1, 1):
+        for bar_idx in range(0,len(high)):
             #'high','low','open','close','avgm','avgh','avgd','month','dayofmonth','dayofweek','hour','minute','ask','bid','volume'
-            res[shift] = (self._prices.high[self._offset + bar_idx] - min)/devia
+            res[shift] = (high[bar_idx] - min)/devia
             shift += 1
-            res[shift] = (self._prices.low[self._offset + bar_idx] - min)/devia
+            res[shift] = (low[bar_idx] - min)/devia
             shift += 1
-            res[shift] = (self._prices.open[self._offset + bar_idx] - min)/devia
+            res[shift] = (open[bar_idx] - min)/devia
             shift += 1
-            res[shift] = (self._prices.close[self._offset + bar_idx] - min)/devia
+            res[shift] = (close[bar_idx] - min)/devia
             shift += 1
-            res[shift] = (self._prices.avgm[self._offset + bar_idx] - minAvg)/deviaAvg
+            res[shift] = (avgm[bar_idx] - minAvg)/deviaAvg
             shift += 1
-            res[shift] = (self._prices.avgh[self._offset + bar_idx] - minAvg)/deviaAvg
+            res[shift] = (avgh[bar_idx] - minAvg)/deviaAvg
             shift += 1
-            res[shift] = (self._prices.avgd[self._offset + bar_idx] - minAvg)/deviaAvg
+            res[shift] = (avgd[bar_idx] - minAvg)/deviaAvg
             shift += 1
-            res[shift] = (self._prices.close[self._offset + bar_idx] - minAvg)/deviaAvg
+            res[shift] = (close[bar_idx] - minAvg)/deviaAvg
             shift += 1
             #res[shift] = self._prices.month[self._offset + bar_idx]
             #shift += 1
@@ -398,9 +426,9 @@ class StocksEnv(gym.Env):
         prices = self._prices[self._instrument]
         bars = self._state.bars_count
         if self.random_ofs_on_reset:
-            offset = self.np_random.choice(prices.high.shape[0]-bars*10) + bars
+            offset = self.np_random.choice(prices.high.shape[0]-(bars*10  * COMPRESS_LEVEL)) + bars * COMPRESS_LEVEL
         else:
-            offset = bars
+            offset = bars * COMPRESS_LEVEL
         self._state.reset(prices, offset)
         return self._state.encode()
 

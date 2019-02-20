@@ -364,7 +364,7 @@ if __name__ == "__main__":
             
             
 
-            if frame_idx % VALIDATION_EVERY_STEP == 0:
+            if frame_idx % VALIDATION_EVERY_STEP == 0 and frame_idx >= 100000:
                 res,_ = validation.validation_run(env_tst, net, device=device,epsilon=0.0)
                 #for key, val in res.items():
                 #    writer.add_scalar(key + "_test", val, frame_idx)
