@@ -6,7 +6,7 @@ import collections
 
 #<high>,<low>,<open>,<close>,<avgm>,<avgh>,<avgd>,<month>,<dayofmonth>,<dayofweek>,<hour>,<minute>,<ask>,<bid>,<volume>
 #'high','low','open','close','avgm','avgh','avgd','month','dayofmonth','dayofweek','hour','minute','ask','bid','volume'
-Prices = collections.namedtuple('Prices', field_names=['high','low','open','close','avgm','avgh','avgd','month','dayofmonth','dayofweek','hour','minute','ask','bid','volume','compresed'])
+Prices = collections.namedtuple('Prices', field_names=['high','low','open','close','avgm','avgh','avgd','month','dayofmonth','dayofweek','hour','minute','ask','bid','volume'])
 
 
 def read_csv(file_name, sep=',', filter_data=True, fix_open_price=False):
@@ -78,8 +78,7 @@ def read_csv(file_name, sep=',', filter_data=True, fix_open_price=False):
                   minute=np.array(minute, dtype=np.float32),
                   ask=np.array(ask, dtype=np.float32),
                   bid=np.array(bid, dtype=np.float32),
-                  volume = None
-                  ,compresed = None)
+                  volume = None)
                   
 
 
@@ -104,8 +103,7 @@ def prices_to_relative(prices):
                   minute=prices.minute,
                   ask=prices.ask,
                   bid=prices.bid,
-                  volume = prices.volume
-                  ,compresed = prices.compresed)
+                  volume = prices.volume)
 
 
 def load_relative(csv_file,isRelative):
@@ -129,4 +127,3 @@ def load_year_data(year, basedir='data'):
     for path in glob.glob(os.path.join(basedir, "*_%s*.csv" % y)):
         result[path] = load_relative(path)
     return result
-
