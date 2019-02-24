@@ -15,7 +15,7 @@ DEFAULT_BARS_COUNT = 10
 DEFAULT_COMMISSION_PERC = 0.0
 MAX_GAME_STEPS = 60
 STOP_AT_MAX_STEPS = False
-COMPRESS_LEVEL = 60
+COMPRESS_LEVEL = 60 * 4
 
 
 
@@ -66,7 +66,7 @@ class State15:
     
     def getMinLossValue(self,close):
         #assert isinstance(close,float)
-        return ((2/( 0.01 * close * 100000))/close) * 100.0
+        return (((2*4)/( 0.01 * close * 100000))/close) * 100.0
 
     def getMaxMin(self):
         max = 0.0;
