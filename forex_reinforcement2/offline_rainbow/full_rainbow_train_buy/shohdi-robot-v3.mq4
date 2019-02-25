@@ -56,13 +56,13 @@ input int noOfTradePeriods = 8;
 
 
 input int shortPeriod = 14;
-input int longPeriod = 100;
+input int longPeriod = 50 * 60 * 4;
 
 input double averageSize = 300;
-input bool allowMovingStop = true;
-input bool allowSoftwareTrail = true;
-input double percentFromCapital = 0.001;
-double minLossValue = 5.0;
+input bool allowMovingStop = false;
+input bool allowSoftwareTrail = false;
+input double percentFromCapital = 0.01;
+double minLossValue = 2 * 4;
 input bool isTakeProfit = true;
 input bool gradStop = false;
 input double maxPercent = 0;
@@ -71,7 +71,7 @@ input int startHour = -1;
 input int endHour = -1;
 
 input int periodsToCheck = 5;
-input double riskToProfit = 2.2;
+input double riskToProfit = 1;
 
 
 
@@ -105,6 +105,7 @@ int lastTicket = 0;
 int lastDir = 0;
 double lastStopLoss = 0;
 double lastAverageMove = 0;
+double lastOpenPrice = 0.0;
 
 
 
@@ -400,34 +401,38 @@ double calculateVolume(int pos)
    //double bidAbeea = MarketInfo(_Symbol,MODE_BID);
    //double askAshtry = MarketInfo(_Symbol,MODE_ASK);
     double askAshtry = getPriceAtPosition(pos);
-   
-  
-   double oneValue = 1139.8/minLossValue;
+ 
+
+   double minBuyMoney = askAshtry * 0.01 * lotSize ;
+   double oneValue = minBuyMoney/minLossValue;
    double lossValue = percentFromCapital * balance;
    if(lossValue < minLossValue)
    {
       lossValue = minLossValue;
-      
+ 
+
    }
-   
+  
+
    double calcVol = 0;
    double volume = 0;
-   
+
+
    while((calcVol / oneValue) <= lossValue)
    {
       volume = volume + 0.01;
       calcVol = volume * lotSize;
       calcVol = calcVol * askAshtry;
    } 
-   
+  
+
    if(volume > 0.01)
    {
       volume = volume - 0.01;
    }
-   
-   return volume;
-   
   
+
+   return volume;
    
 }
 
@@ -553,7 +558,7 @@ bool openTrade (int type)
    }
    
    
-   takeProfit = 0;
+   
    
    int ticket=OrderSend(Symbol(),setType,volume,close,5,stopLoss,takeProfit,title,EXPERT_MAGIC,0,arrowColor);
    
@@ -567,6 +572,8 @@ bool openTrade (int type)
             lastDir = type;
             
             lastAverageMove = averageMove;
+            lastOpenPrice = getOpenPrice(type);
+            
             return true;
          }
      }
@@ -1648,10 +1655,53 @@ void OnTick()
       return getSpread()/getSpreadDips();
   }
   
+  double getCurrentClose()
+  {
+      double closes[1];
+      CopyClose(_Symbol,PERIOD_M1,0,1,closes);
+      return closes[0];
+  }
   
+  double getOpenPrice(int type)
+  {
+       double vbid    = MarketInfo(_Symbol,MODE_BID);
+   double vask    = MarketInfo(_Symbol,MODE_ASK);
+   double close = getCurrentClose();
+   double slip = vask- vbid;
+   if(slip < 0)
+      slip = slip *-1;
+   if(type == 1)
+   {
+      return close - slip;
+   }
+   else if (type == -1)
+   {
+      return close + slip;
+   }
+   
+   return close;
+  }
   
-  
-  
+  double getTrainReward()
+  {
+      double close = getCurrentClose();
+      if(getOpenedOrderNo() > 0)
+      {
+         if(lastDir > 0)
+         {
+            return close - lastOpenPrice;
+         }
+         else
+         {
+            return (close - lastOpenPrice) * -1;
+         }
+         
+      }
+      else
+      {
+         return 0;
+      }
+  }
   
   string getDateToSendToServer(double reward,bool isDone,double up,double down)
   {
@@ -1683,8 +1733,7 @@ void OnTick()
          strRet = strRet + DoubleToStr(lows[i]) + ",";
          strRet = strRet + DoubleToStr(opens[i]) + ",";
          strRet = strRet + DoubleToStr(closes[i]) + ",";
-         strRet = strRet + DoubleToStr(up) + ",";
-         strRet = strRet + DoubleToStr(down) + ",";
+
          strRet = strRet + DoubleToStr(movingAverage(longPeriod-i,PERIOD_M1,100)) + ",";
          strRet = strRet + DoubleToStr(movingAverage(longPeriod-i,PERIOD_H1,100)) + ",";
          strRet = strRet + DoubleToStr(movingAverage(longPeriod-i,PERIOD_D1,100)) + ",";
@@ -1699,14 +1748,27 @@ void OnTick()
          
       }
       
+      double pos = 0;
+      if(up > 0)
+      {
+         pos = 1;
+         
+      }
+      else if(down > 0)
+      {
+         pos = 0.5;
+      }
+      
+      strRet = strRet + pos  + ",";
+      
       double profit = 0;
          if(up > 0 || down > 0)
          {
-            profit = OrderProfit();
+            profit = getTrainReward();
          }
          strRet = strRet + profit  + ",";
       
-      strRet = strRet + DoubleToStr(reward) + ",";
+      
       strRet = strRet + (isDone ? "1":"0");
       
   
