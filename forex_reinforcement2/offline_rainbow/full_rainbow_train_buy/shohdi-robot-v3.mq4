@@ -1162,6 +1162,11 @@ int OnInit()
    printf("spread price : %G",spreadSize * pointSize);
    printf("bid : %G",bid);
    printf("ask : %G",ask);
+   double close = getCurrentClose();
+   double upPrice = getOpenPrice(1);
+   double downPrice = getOpenPrice(-1);
+   Print("close ",close," up price " , upPrice," down price ",downPrice);
+   
    
    printf("month : %G",getMonth(TimeCurrent()));
    printf("day of month : %G",getDayOfMonth(TimeCurrent()));
@@ -1672,11 +1677,11 @@ void OnTick()
       slip = slip *-1;
    if(type == 1)
    {
-      return close - slip;
+      return close + slip;
    }
    else if (type == -1)
    {
-      return close + slip;
+      return close - slip;
    }
    
    return close;
@@ -1689,11 +1694,11 @@ void OnTick()
       {
          if(lastDir > 0)
          {
-            return close - lastOpenPrice;
+            return (close - lastOpenPrice)/close;
          }
          else
          {
-            return (close - lastOpenPrice) * -1;
+            return ((close - lastOpenPrice) * -1)/close;
          }
          
       }
