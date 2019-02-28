@@ -572,7 +572,7 @@ bool openTrade (int type)
             lastDir = type;
             
             lastAverageMove = averageMove;
-            lastOpenPrice = getOpenPrice(type);
+            lastOpenPrice = getCurrentClose();
             
             return true;
          }
@@ -1163,8 +1163,8 @@ int OnInit()
    printf("bid : %G",bid);
    printf("ask : %G",ask);
    double close = getCurrentClose();
-   double upPrice = getOpenPrice(1);
-   double downPrice = getOpenPrice(-1);
+   double upPrice = getExitPrice(1);
+   double downPrice = getExitPrice(-1);
    Print("close ",close," up price " , upPrice," down price ",downPrice);
    
    
@@ -1667,7 +1667,7 @@ void OnTick()
       return closes[0];
   }
   
-  double getOpenPrice(int type)
+  double getExitPrice(int type)
   {
        double vbid    = MarketInfo(_Symbol,MODE_BID);
    double vask    = MarketInfo(_Symbol,MODE_ASK);
@@ -1677,11 +1677,11 @@ void OnTick()
       slip = slip *-1;
    if(type == 1)
    {
-      return close + slip;
+      return close - slip;
    }
    else if (type == -1)
    {
-      return close - slip;
+      return close + slip;
    }
    
    return close;
@@ -1689,16 +1689,17 @@ void OnTick()
   
   double getTrainReward()
   {
-      double close = getCurrentClose();
+      
       if(getOpenedOrderNo() > 0)
       {
+         double exitPrice = getExitPrice(lastDir);
          if(lastDir > 0)
          {
-            return (close - lastOpenPrice)/close;
+            return ((exitPrice - lastOpenPrice)/lastOpenPrice) * 100.0;
          }
          else
          {
-            return ((close - lastOpenPrice) * -1)/close;
+            return (((exitPrice - lastOpenPrice) * -1)/lastOpenPrice) * 100.0;
          }
          
       }
