@@ -1731,7 +1731,7 @@ void OnTick()
       CopyLow(_Symbol,per,1,longPeriod,lows);
       CopyOpen(_Symbol,per,1,longPeriod,opens);
       CopyTime(_Symbol,per,1,longPeriod,dates);
-      string strRet = "";
+      string strRet = "<high>,<low>,<open>,<close>,<avgm>,<avgh>,<avgd>,<month>,<daym>,<dayw>,<hour>,<min>,<ask>,<bid>,";
       for(int i=0;i<longPeriod;i++)
       {
          
