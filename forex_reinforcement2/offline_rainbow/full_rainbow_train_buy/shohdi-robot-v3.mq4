@@ -1364,7 +1364,7 @@ void OnTick()
 
                int tradeTypeAgent = StrToInteger(webRet);
                
-               Print("action returned 0 - wait  1 - down 2 - up 3 - close ",tradeTypeAgent,"  action time ",TimeToStr(TimeCurrent()));
+               Print("action returned 0 - wait  1 - up 2 - down 3 - wait ",tradeTypeAgent,"  action time ",TimeToStr(TimeCurrent()));
 
                bool orderIsOpen = false;
 
@@ -1434,7 +1434,7 @@ void OnTick()
 
                      {
 
-                        tradeType = 0;
+                        tradeType = 1;
 
                      }
 
@@ -1442,7 +1442,7 @@ void OnTick()
 
                      {
 
-                        tradeType = 1;
+                        tradeType = -1;
 
                      }
 
@@ -1484,7 +1484,7 @@ void OnTick()
                      
                      //minimum is 100 dips
                      //double minVal = point * 100;
-                     
+                     /*
                      bool closeRes = false;
                      //if(diff >= minVal)
                      //{
@@ -1508,7 +1508,7 @@ void OnTick()
 
                      
 
-                     
+                     */
 
                      
 
