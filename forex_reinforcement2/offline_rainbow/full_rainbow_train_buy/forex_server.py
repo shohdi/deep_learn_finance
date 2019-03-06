@@ -47,23 +47,27 @@ def action_check():
 
 @app.route('/action/step-ret',methods=[ 'POST'])
 def action_ret():
-    
+    #"<high>,<low>,<open>,<close>,<avgm>,<avgh>,<avgd>,<month>,<daym>,<dayw>,<hour>,<min>,<ask>,<bid>"
     ret = request.form["ret"]
     
     
     arr = ret.split(',');
+    arrTitles = arr[0:14];
+    arr = arr[14:];
     arrFloat = [float(i) for i in arr];
-    state = arrFloat[0:(100*16)];
+   
+    
+    state = arrFloat[0:(50*60*4*14)];
     stateNum = np.array(state,dtype=np.float32);
-    stateNum = np.reshape(stateNum,(100,16));
-    stateNum = stateNum[90:100,0:14];
+    stateNum = np.reshape(stateNum,(50*60*4,14));
+    
     
     reward = arrFloat[-2];
     gameOver = arrFloat[-1];
-    im_reward = arrFloat[-3];
+    last_pos = arrFloat[-3];
     myAgent.env._last_game_over = (True  if gameOver > 0  else False);
     myAgent.env._last_reward = reward;
     myAgent.env._last_state = stateNum;
     myAgent.env._step_ended = True;
-    myAgent.env._last_im_reward = im_reward;
+    myAgent.env._last_pos = last_pos;
     return ret;
