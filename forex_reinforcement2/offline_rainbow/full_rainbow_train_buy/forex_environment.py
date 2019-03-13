@@ -41,7 +41,7 @@ class MyDataPos(Enum):
     BID = 13
 
 
-class Actions(enum.Enum):
+class Actions(Enum):
     Skip = 0
     Buy = 1
     Close = 2
@@ -102,6 +102,7 @@ class ForexEnvironment(gym.Env):
     
 
     def reset(self):
+        return self.step(0)
         self.initVars();
         self._step_started = True;
         
@@ -127,22 +128,22 @@ class ForexEnvironment(gym.Env):
             i= i+1;
 
         #print("step ended  ",self._step_started , self._step_ended);
-        self._last_state = self.normCustomArray(self._last_state);
         self._states_coll.append(self._last_state);
-        
-        state = self.encode(self._last_state)
+        state = []
+        if(self._last_pos == 0):
+            state = self.encode(self._last_state)
         return  state,self._last_reward,self._last_game_over,self._last_pos;
     
 
     def getPrices(self,arr):
         prices = OneDataPrices()
-        prices.high =  arr[:,MyDataPos.HIGH]
-        prices.low = arr[:,MyDataPos.LOW]
-        prices.close = arr[:,MyDataPos.CLOSE]
-        prices.open = arr[:,MyDataPos.OPEN]
-        prices.avgd = arr[:,MyDataPos.AVGD]
-        prices.avgm = arr[:,MyDataPos.AVGM]
-        prices.avgh = arr[:,MyDataPos.AVGH]
+        prices.high =  arr[:,MyDataPos.HIGH.value[0]]
+        prices.low = arr[:,MyDataPos.LOW.value[0]]
+        prices.close = arr[:,MyDataPos.CLOSE.value[0]]
+        prices.open = arr[:,MyDataPos.OPEN.value[0]]
+        prices.avgd = arr[:,MyDataPos.AVGD.value[0]]
+        prices.avgm = arr[:,MyDataPos.AVGM.value[0]]
+        prices.avgh = arr[:,MyDataPos.AVGH.value[0]]
         return prices;
 
 
@@ -220,7 +221,7 @@ class ForexEnvironment(gym.Env):
         return res        
         
         
-    def getMaxMin(prices):
+    def getMaxMin(self,prices):
         max = 0.0;
         min = 9999999.0;
         maxAvg = 0.0;

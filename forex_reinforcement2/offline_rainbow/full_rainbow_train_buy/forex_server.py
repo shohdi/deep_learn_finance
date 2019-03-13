@@ -55,6 +55,18 @@ def action_ret():
     arrTitles = arr[0:14];
     arr = arr[14:];
     arrFloat = [float(i) for i in arr];
+    reward = arrFloat[-2];
+    gameOver = arrFloat[-1];
+    last_pos = arrFloat[-3];
+    myAgent.env._last_game_over = (True  if gameOver > 0  else False);
+    myAgent.env._last_reward = reward;
+    myAgent.env._last_pos = last_pos;
+    if len(arr) < (50*60*4*14):
+        myAgent.env._last_state = None;
+        myAgent.env._step_ended = True;
+
+        return  ret;
+
    
     
     state = arrFloat[0:(50*60*4*14)];
@@ -62,12 +74,8 @@ def action_ret():
     stateNum = np.reshape(stateNum,(50*60*4,14));
     
     
-    reward = arrFloat[-2];
-    gameOver = arrFloat[-1];
-    last_pos = arrFloat[-3];
-    myAgent.env._last_game_over = (True  if gameOver > 0  else False);
-    myAgent.env._last_reward = reward;
+
     myAgent.env._last_state = stateNum;
     myAgent.env._step_ended = True;
-    myAgent.env._last_pos = last_pos;
+
     return ret;

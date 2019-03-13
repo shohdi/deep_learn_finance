@@ -1367,7 +1367,17 @@ void OnTick()
                Print("action returned 0 - wait  1 - up 2 - down 3 - wait ",tradeTypeAgent,"  action time ",TimeToStr(TimeCurrent()));
 
                bool orderIsOpen = false;
-
+                if(getOpenedOrderNo() == 1)
+               
+                   {
+               
+                      if(OrderSelect(lastTicket,SELECT_BY_TICKET) == true)
+               
+                                    {
+           
+                                       orderIsOpen = true;
+                                       }
+                                       }
                
 
                if(lastIsOrderOpen && getOpenedOrderNo() == 0)
@@ -1392,35 +1402,7 @@ void OnTick()
 
                {
 
-                  if(getOpenedOrderNo() == 1)
 
-                  {
-
-                     if(OrderSelect(lastTicket,SELECT_BY_TICKET) == true)
-
-                     {
-
-                        orderIsOpen = true;
-
-                        if(lastDir > 0)
-
-                        {
-
-                           up = OrderOpenPrice();
-
-                        }
-
-                        else
-
-                        {
-
-                           down = OrderOpenPrice();
-
-                        }
-
-                     }
-
-                  }
 
                   
 
@@ -1520,7 +1502,35 @@ void OnTick()
 
                
 
-               
+                  if(getOpenedOrderNo() == 1)
+
+                  {
+
+                     if(OrderSelect(lastTicket,SELECT_BY_TICKET) == true)
+
+                     {
+
+                        orderIsOpen = true;
+
+                        if(lastDir > 0)
+
+                        {
+
+                           up = OrderOpenPrice();
+
+                        }
+
+                        else
+
+                        {
+
+                           down = OrderOpenPrice();
+
+                        }
+
+                     }
+
+                  }
 
                
 
@@ -1711,6 +1721,9 @@ void OnTick()
   
   string getDateToSendToServer(double reward,bool isDone,double up,double down)
   {
+      string strRet = "<high>,<low>,<open>,<close>,<avgm>,<avgh>,<avgd>,<month>,<daym>,<dayw>,<hour>,<min>,<ask>,<bid>,";
+      if(getOpenedOrderNo() == 0)
+      {
       double highs[];
       double lows[];
       double closes[];
@@ -1731,7 +1744,7 @@ void OnTick()
       CopyLow(_Symbol,per,1,longPeriod,lows);
       CopyOpen(_Symbol,per,1,longPeriod,opens);
       CopyTime(_Symbol,per,1,longPeriod,dates);
-      string strRet = "<high>,<low>,<open>,<close>,<avgm>,<avgh>,<avgd>,<month>,<daym>,<dayw>,<hour>,<min>,<ask>,<bid>,";
+      
       for(int i=0;i<longPeriod;i++)
       {
          
@@ -1752,6 +1765,9 @@ void OnTick()
          strRet = strRet + SymbolInfoDouble(_Symbol,SYMBOL_BID) + ",";
          
          
+      }
+      
+      
       }
       
       double pos = 0;
@@ -1776,7 +1792,6 @@ void OnTick()
       
       
       strRet = strRet + (isDone ? "1":"0");
-      
   
       return strRet;
   }

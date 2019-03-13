@@ -63,7 +63,7 @@ class ForexAgent:
 
 
     def buildModel(self):
-        net = RainbowDQN(self.env.observation_space.shape, self.env.action_space.n).to('cpu')
+        net = model.RainbowDQN(self.env.observation_space.shape, self.env.action_space.n).to('cpu')
 
         
         modelSave = os.path.join(DATA_DIR,"model.data")
@@ -74,8 +74,8 @@ class ForexAgent:
             net.eval()
             print('end found model file , loading ...');
         
-        ptan.agent.DQNAgent(lambda x: net.qvals(x), ptan.actions.ArgmaxActionSelector(), device='cpu')
-        return  net;
+        ret = ptan.agent.DQNAgent(lambda x: net.qvals(x), ptan.actions.ArgmaxActionSelector(), device='cpu')
+        return  ret;
         
 
     def createModels(self):
@@ -100,15 +100,16 @@ class ForexAgent:
             
             while not game_over:
                 s_tm1 = s_t
+                pos = info
+                if pos == 0:
+                    obs_v = [s_tm1]
+                    out_v,_ = self.model(obs_v)
+                    action_idx = out_v[0]
+                    a_t = action_idx;
+                else:
+                    a_t = 0
 
-
-                obs_v = [s_tm1]
-                out_v,_ = self.model(obs_v)
-                action_idx = out_v[0]
-                a_t = action_idx;
-
-                if s_t[-2] > 0:
-                    a_t = 0.0;
+ 
 
 
                 #apply action , get reward
