@@ -1,3 +1,0 @@
-export FLASK_APP=forex_server.py
-
-python -m flask run

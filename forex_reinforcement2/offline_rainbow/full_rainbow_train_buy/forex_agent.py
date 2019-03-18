@@ -26,6 +26,7 @@ import torch
 from lib import model
 
 from lib import environ
+from tensorboardX import SummaryWriter
 import ptan
 
 IS_TEST_RUN = True
@@ -52,9 +53,17 @@ ITERATE_COPY_Q = 1000;
 
 class ForexAgent:
     def __init__(self,env):
-        self.env = env;
+        self.stockFile = "data/train_data/data_5yr_to_9_2017.csv"
+        self.writer =  SummaryWriter(comment="-" + "shohdi-run-on-env" + "-rainbow")
+        self.stockData = {"EURUSD": data.load_relative(self.stockFile,False)}
+        self.env = environ.StocksEnv("run",self.writer,self.stockData, bars_count=50, reset_on_close=True,state_15=True, state_1d=False, volumes=False)
+        self.env.reset()
+        self.totalReward = 0
+        self.totalSteps = 0
+        #self.env = env;
         self._started = False;
         self.shape = self.env.shape
+
         
 
 
@@ -93,14 +102,15 @@ class ForexAgent:
 
             #get first state
             a_0 = 0 # (0= left , 1 = buy , 2 = close)
-            s_t , r_0 , game_over,info = self.env.step(a_0)
+            #s_t , r_0 , game_over,info = self.env.step(a_0)
+            s_t , r_0 , game_over,info = self.env.reset()
             
             s_tm1 = s_t
             a_t,r_t = None,None
             
             while not game_over:
                 s_tm1 = s_t
-                pos = info
+                pos = self.env._state.have_position
                 if pos == 0:
                     obs_v = [s_tm1]
                     out_v,_ = self.model(obs_v)
@@ -116,7 +126,14 @@ class ForexAgent:
                 s_t , r_t , game_over ,info= self.env.step(a_t)
                 state_count+=1
                 #if reward , increment num_wins
+                if game_over:
+                    self.totalReward += r_t
+                    self.totalSteps += 1
+                    self.writer.add_scalar("run reward ",self.totalReward,self.totalSteps)
+
                 if r_t > 0 and game_over :
+                    
+                    
                     self.num_wins +=1
 
 
